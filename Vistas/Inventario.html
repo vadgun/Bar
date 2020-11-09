@@ -1,0 +1,34 @@
+{{template "headerlayout"}} {{template "navingbar" .}}
+<div class="container">
+    <div class="centrado">
+        <h1 class="display-4">Inventario</h1>
+    </div>
+</div>
+
+<hr>
+
+<div class="container centrado">
+
+    <a class="btn btn-info btn-large padd" href="Javascript:Mifuncion('Almacenes');" role="button">Almacenes</a>&nbsp;
+    <a class="btn btn-info btn-large padd" href="Javascript:Mifuncion('Alta');" role="button">Alta de Producto</a>&nbsp;
+    <a class="btn btn-info btn-large padd" href="Javascript:Mifuncion('Traspasos');" role="button">Traspaso de Producto</a>&nbsp;
+    <a class="btn btn-info btn-large padd" href="Javascript:Mifuncion('botellas');" role="button">Botellas</a>&nbsp;
+    <a class="btn btn-info btn-large padd" href="Javascript:Mifuncion('botanas');" role="button">Botanas</a>&nbsp;
+    <a class="btn btn-info btn-large padd" href="Javascript:Mifuncion('cancion');" role="button">Cancion</a>&nbsp;
+    <a class="btn btn-info btn-large padd" href="Javascript:Mifuncion('cervezas');" role="button">Cervezas</a>&nbsp;
+    <a class="btn btn-info btn-large padd" href="Javascript:Mifuncion('cigarros');" role="button">Cigarros</a>&nbsp;
+    <a class="btn btn-info btn-large padd" href="Javascript:Mifuncion('copa');" role="button">Copa</a>&nbsp;
+    <a class="btn btn-info btn-large padd" href="Javascript:Mifuncion('ficha');" role="button">Ficha</a>&nbsp;
+    <a class="btn btn-info btn-large padd" href="Javascript:Mifuncion('promo');" role="button">Promos</a>&nbsp;
+</div>
+<div class="container" id="maincontainer">
+</div>
+<hr>
+<div class="container" id="subcontainer">
+</div>
+<div class="container" id="subsubcontainer">
+</div>
+<script>
+    inventariosit.classList.add("page_selected");
+</script>
+{{template "footerlayout"}}

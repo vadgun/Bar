@@ -1,0 +1,30 @@
+{{template "headerlayout"}} {{template "navingbar" .}}
+<div class="container">
+    <div class="centrado">
+        <h1 class="display-4">Ventas Diarias</h1>
+    </div>
+</div>
+
+<hr>
+
+<div class="container ">
+    <form action="#" id="formventas" method="POST">
+        <div class="col-12">
+            <div class="form-group row">
+                <label for="fechaarchivo" class="col-sm-2 col-form-label negrita" style="font-size: 1.5em;"> Fecha: </label>
+                <div class="col-sm-6">
+                    <input type="date" class="form-control form-control-lg" id="fechaarchivo" name="fechaarchivo" onchange="Javascript:ClasificaVenta(this.value)" required>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="container" id="maincontainer">
+
+</div>
+
+<script>
+    ventasdiariasit.classList.add("page_selected");
+</script>
+{{template "footerlayout"}}

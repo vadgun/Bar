@@ -1,0 +1,81 @@
+{{template "headerlayout"}} {{template "navingbar" .}}
+
+<div class="container">
+    <div class="centrado">
+        <h1 class="display-4">Ventas</h1>
+    </div>
+</div>
+<hr>
+<div class="container ">
+    <form action="#" id="formventas" method="POST">
+        <div class="col-12">
+            <div class="form-group row">
+                <label for="fechaarchivo" class="col-sm-2 col-form-label negrita" style="font-size: 1.5em;"> Fecha: </label>
+                <div class="col-sm-6">
+                    <input type="date" class="form-control form-control-lg" id="fechaarchivo" name="fechaarchivo" onchange="Javascript:VerificaMesas(this.value)" required>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="container" id="maincontainer">
+
+</div>
+
+<!-- Modal SERVICIOS-->
+<div class="modal fade" id="ModalProductos" tabindex="-1" role="dialog" aria-labelledby="ModalProductos" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="color: black;">
+                <h4 class="modal-title" id="titulodemesa">MESA : </h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+            <br>
+            <div class="container centrado">
+                <input type="hidden" id="idmesa" name="idmesa" value="">
+                <a class="btn btn-info btn-large padd" href="Javascript:MifuncionModal('botella');" role="button">Botellas</a>&nbsp;
+                <a class="btn btn-info btn-large padd" href="Javascript:MifuncionModal('botana');" role="button">Botanas</a>&nbsp;
+                <a class="btn btn-info btn-large padd" href="Javascript:MifuncionModal('cancion');" role="button">Cancion</a>&nbsp;
+                <a class="btn btn-info btn-large padd" href="Javascript:MifuncionModal('cerveza');" role="button">Cervezas</a>&nbsp;
+                <a class="btn btn-info btn-large padd" href="Javascript:MifuncionModal('cigarros');" role="button">Cigarros</a>&nbsp;
+                <a class="btn btn-info btn-large padd" href="Javascript:MifuncionModal('copa');" role="button">Copa</a>&nbsp;
+                <a class="btn btn-info btn-large padd" href="Javascript:MifuncionModal('ficha');" role="button">Ficha</a>&nbsp;
+                <a class="btn btn-info btn-large padd" href="Javascript:MifuncionModal('promo');" role="button">Promos</a>&nbsp;
+
+
+
+            </div>
+
+            <div class="modal-header" id="modalcontainerforprod">
+
+            </div>
+
+            <div class="modal-header" style="color: black;">
+                <h5 class="modal-title">Productos agregados:</h5>
+            </div>
+
+            <div id="serviciosmodal" class="modal-body">
+
+
+
+            </div>
+            <hr>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container" id="subcontainer">
+
+</div>
+
+<script>
+    ventasit.classList.add("page_selected");
+</script>
+{{template "footerlayout"}}

@@ -1,0 +1,103 @@
+{{template "headerlayout"}}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
+    <div class="col-2">
+        <a class="navbar-brand" href="#">
+            <img src="Recursos/Imagenes/logo.png" width="40" height="40" alt="">
+            <span> SSESP </span>
+        </a>
+
+    </div>
+
+    <div class="col-7">
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link agregarcol" href="/index">Inicio</a>
+                </li>
+
+
+            </ul>
+        </div>
+
+
+    </div>
+
+    <div class="col-2">
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown2" aria-controls="navbarNavDropdown2" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown2">
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <button class="btn-sm"> 
+                                 <img src="Recursos/Generales/Plugins/icons/build/svg/person.svg" height="20" alt="usuario"/>                       
+                                </button> {{.Usuario.Nombre2}}
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                        <a class="dropdown-item" href="/configuracion">Configuración</a>
+                        <a class="dropdown-item" href="/editarusuario">Editar usuario</a>
+                        <a class="dropdown-item" href="/logout">Cerrar sesión</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+</nav>
+
+<div>
+
+</div>
+
+<div id="maincontainer">
+
+    <div class="container">
+
+        <!-- <div class="jumbotron">
+        <h1 class="display-4">Bienvenido</h1>
+        <p class="lead">Aqui puedes encotrar accesos rapidos a los documentos recibidos</p>
+        <hr class="my-4">
+        <p>Documentos que fueron almacenados en una base de datos para su pronto uso.</p>
+        <a class="btn btn-primary btn-lg" href="Javascript:Mifuncion('Oficios');" role="button"> Oficios </a>
+        <a class="btn btn-primary btn-lg" href="Javascript:Mifuncion('Memoramdums');" role="button"> Memoramdums </a>
+        <a class="btn btn-primary btn-lg" href="Javascript:Mifuncion('Circulares');" role="button"> Circulares </a>
+      </div>
+    </div>
+
+     -->
+    </div>
+
+
+
+
+    <!-- 
+    <div class="container">
+<div class="row">
+    <div class="col-6" id="divmain">
+            <div class="container">
+                    <h4>Reporte de Ventas</h4>
+            </div>
+    </div>
+    <div class="col-6" id="divmain2">
+            <div class="container">
+                    <h4>Reporte de Ventas</h4>
+            </div>           
+    </div>
+
+    <div class="col-6" id="divmain3">
+            <div class="container">
+                    <h4>Reporte de Ventas</h4>
+            </div>
+    </div>
+
+</div>
+</div> -->
+    {{template "footerlayout"}}

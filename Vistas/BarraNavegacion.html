@@ -1,0 +1,114 @@
+{{define "navingbar"}}
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <!-- Logotipo de la empresa  -->
+    <!-- Tamaño de la columna 3 -->
+    <div class="col-3">
+        <a class="navbar-brand" href="#">
+            <img src="Recursos/Imagenes/logo.jpg" width="40" height="40" alt="">
+            <span>La 49 &#174; </span>
+        </a>
+    </div>
+
+    <!-- Area de botones -->
+    <!-- Tamaño de la columna 6 -->
+    <div class="col-6">
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link agregarcol" id="indexit" href="/index">Inicio</a>
+                </li>
+
+                {{if .Usuario.Admin}}
+
+                <li class="nav-item">
+                    <a class="nav-link agregarcol" id="administracionit" href="/administracion">Administración</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link agregarcol" id="inventariosit" href="/inventario">Inventario</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link agregarcol" id="ventasit" href="/venta">Venta</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link agregarcol" id="ventasdiariasit" href="/ventadiaria">Venta Diaria</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link agregarcol" id="imprimirventasdiariasit" href="/imprimirventadiaria">Imprimir</a>
+                </li>
+
+                {{end}} {{if .Usuario.Produccion}}
+                <li class="nav-item">
+                    <a class="nav-link agregarcol" id="ventasit" href="/venta">Venta</a>
+                </li>
+
+                {{end}}
+
+
+
+
+                <!-- {{range $index,$value := .Areas}}
+                <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle agregarcol" href="#" id="Reportes{{$value.Area}}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            {{$value.Area}}
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="Reportes{{$value.Area}}">
+                            {{range $index2, $value2 := $value.Reportes}}
+                            <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('{{$value2}}');">{{$value2}}</a>
+                            {{end}}
+                        </div>
+
+                </li>
+                {{end}} -->
+                <!-- <li class="nav-item">
+                        <a class="nav-link agregarcol" href="#" onclick="Mifuncion('ImpresionContratos');">Impresion de Contratos</a>
+                </li> -->
+            </ul>
+        </div>
+    </div>
+    <!-- Notificaciones -->
+    <!-- Tamaño de la columna 1 -->
+    <div class="col-1">
+        <!-- <button type="button" class="btn btn-success notificaciones">
+                    <span class="badge badge-light">4</span>
+            </button> -->
+    </div>
+    <!-- Usuario y Acciones -->
+    <!-- Tamaño de la columna 2 -->
+    <div class="col-2">
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown2" aria-controls="navbarNavDropdown2" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown2">
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle usernamee" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <button class="btn-sm"> 
+                                 <img src="Recursos/Generales/Plugins/icons/build/svg/person.svg" height="20" alt="usuario"/>                       
+                                </button> {{.Usuario.Nombre2}}
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                        <!-- <a class="dropdown-item" href="/configuracion">Configuración</a> -->
+                        <a class="dropdown-item" id="cambiafondos" href="Javascript:CambiarFondo(1);">Cambiar fondo</a>
+                        <a class="dropdown-item" href="Javascript:LetrasBlancas();">Letras Blancas</a>
+                        <a class="dropdown-item" href="Javascript:LetrasNegras();">Letras Negras</a>
+                        <a class="dropdown-item" href="/logout">Cerrar sesión</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+</nav>
+
+{{end}}

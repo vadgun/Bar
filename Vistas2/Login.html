@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>La 49 | Login </title>
+    {{template "styles_login"}}
+</head>
+
+<body>
+    <div class="limiter">
+        <div class="container-login100">
+            <div class="wrap-login100">
+                <form class="login100-form validate-form" id="loginform" method="POST" action="/index">
+
+                    <span class="login100-form-title p-b-10">
+						<img src="Recursos/Imagenes/logo2.jpg" class="imglogo" alt="Logotipo Seguridad Publica">
+					</span>
+                    <br>
+                    <br>
+                    <div class="wrap-input100 validate-input" data-validate="Ingresa tu nombre de usuario">
+                        <input class="input100" type="text" name="usuario" id="usuario">
+                        <span class="focus-input100" data-placeholder="Usuario:"></span>
+                    </div>
+
+                    <div class="wrap-input100 validate-input" data-validate="Ingresa una contraseña:">
+                        <span class="btn-show-pass">
+							<i class="zmdi zmdi-eye"></i>
+						</span>
+                        <input class="input100" type="password" name="pass" id="pass">
+                        <span class="focus-input100" data-placeholder="Contraseña:"></span>
+                    </div>
+
+                    <div class="container-login100-form-btn">
+                        <div class="wrap-login100-form-btn">
+                            <div class="login100-form-bgbtn"></div>
+                            <button class="login100-form-btn">
+								Login
+							</button>
+                        </div>
+                    </div>
+
+                    <div class="text-center p-t-45">
+                        <span class="txt1">
+							La 49 &#174; 2020
+						</span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="dropDownSelect1"></div>
+    {{template "scripts_login"}}
+</body>
+<footer>
+
+</footer>
+
+</html>

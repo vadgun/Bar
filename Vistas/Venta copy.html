@@ -1,0 +1,103 @@
+{{template "headerlayout"}} {{template "navingbar" .}}
+
+<hr>
+
+<div class="container">
+    <div class="centrado">
+        <h2>{{.Usuario.Nombre}} {{.Usuario.Apellidos}}
+
+        </h2>
+    </div>
+</div>
+
+<div class="container">
+    <div class="centrado">
+        <h1 class="display-4">Ventas</h1>
+    </div>
+</div>
+
+<hr>
+<!-- 
+<div class="container">
+    <a class="btn btn-success btn-large padd" href="Javascript:MyFunc('Venta');" role="button">Agregar Venta</a>
+</div> -->
+
+<!-- <hr> -->
+
+<div class="container ">
+    <form action="#">
+        <div class="col-12">
+            <div class="form-group row">
+                <label for="fechaarchivo" class="col-sm-1 col-form-label negrita" style="font-size: 1.5em;"> Fecha: </label>
+                <div class="col-sm-3">
+                    <input type="date" class="form-control form-control-lg" id="fechaarchivo" name="fechaarchivo" onchange="Javascript:VerificaMesas(this.value)" required>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="container" id="maincontainer">
+
+</div>
+
+<!-- {{range $index,$value := .Mesas}}
+        <div class="col-sm-3" style="text-align: center; padding: 1PX; ">
+            <a href="Javascript:alert('{{$value.Mesa}}');" style="color: black;">
+                <div style="background-color: #31b095; height: 200px;">
+                    <h5>{{$value.Mesa}}</h5>
+                    MESA DESOCUPADA
+                    <br> INICIAR VENTA
+                </div>
+            </a>
+        </div>
+        {{end}} -->
+
+
+<!-- 
+<div class="container">
+    <div class="row">
+        <br> {{range $index,$value := .Mesas}} {{if $value.Estatus}}
+        <div class="col-sm-3" style="text-align: center; padding: 1PX; ">
+            <a href="Javascript:alert('{{$value.Mesa}} OCUPADA');" style="color: black;">
+                <div style="background-color: #31b095; height: 200px;">
+                    <H2>{{$value.Mesa}}</H2>
+                    $ 675.00
+                    <br>
+                    <a class="btn btn-primary btn-sm padd" href="Javascript:alert('Productos');" role="button">Productos</a>
+                    <br>
+                    <a class="btn btn-danger btn-sm padd" href="Javascript:alert('{{$value.ID.Hex}}');" role="button">Cerrar Venta</a>
+                </div>
+            </a>
+        </div>
+        {{else}}
+        <div class="col-sm-3" style="text-align: center; padding: 1PX; ">
+            <a href="Javascript:alert('{{$value.Mesa}} DESOCUPADA');" style="color: black;">
+                <div style="background-color: #9ea832; height: 200px;">
+                    <H2>{{$value.Mesa}}</H2>
+                    <br>DESOCUPADA<br>
+                    <a class="btn btn-success  btn-sm padd" href="Javascript:alert('{{$value.ID.Hex}}');" role="button">Iniciar Venta</a>
+                </div>
+            </a>
+        </div>
+        {{end}} {{end}}
+
+
+
+
+
+    </div>
+</div>
+<hr> {{if .Usuario.Admin}}
+<div class="container">
+    <div class="centrado">
+        <h1>Total Vendido en 03/08/2020 $1150.00 </h1>
+    </div>
+</div>
+{{end}} -->
+
+
+<script>
+    indexit.classList.add("page_selected");
+</script>
+{{template "footerlayout"}}

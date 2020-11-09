@@ -1,0 +1,454 @@
+{{template "headerlayout"}}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
+    <div class="col-3">
+        <a class="navbar-brand" href="#">
+            <img src="Recursos/Imagenes/logo.png" width="40" height="40" alt="">
+            <span>&nbsp Finanzas y Administración</span>
+        </a>
+
+    </div>
+
+    <div class="col-6">
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown"
+            aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                <ul class="navbar-nav">
+                        <li class="nav-item">
+                                <a class="nav-link agregarcol" href="/index">Inicio</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle agregarcol" href="#" id="EstadoResultados" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                Estado de Resultados
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="EstadoResultados">
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('EstadoResultados');">General</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('EstadoResultadosAnual');">Anual</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('EstadoResultadosMensual');">Mensual</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('EstadoResultadosDesarrollo');">Desarrollo</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('EstadoResultadosComparativaAnual');">Comparativa Anual</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('EstadoResultadosComparativaMensual');">Comparativa Mensual</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('EstadoResultadosRentabilidad');">Rentabilidad</a>                                                            
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('EstadoResultadosGraficaCostos');">Graficas por Costos</a>
+                            </div>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle agregarcol" href="#" id="BalanceGeneral" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                Balance General
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="BalanceGeneral">
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('BalanceGeneral');">General</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('BalanceGeneralAnual');">Anual</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('BalanceGeneralMensual');">Mensual</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('BalanceGeneralDesarrollo');">Desarrollo</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('BalanceGeneralComparativaAnual');">Comparativa Anual</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('BalanceGeneralComparativaMensual');">Comparativa Mensual</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('BalanceGeneralLiquidez');">Liquidez y Apalancamiento</a>                                                            
+                                    <!-- <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('BalanceGeneralGraficas');">Graficas</a> -->
+                            </div>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle agregarcol" href="#" id="IntegracionPresupuesto" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                Integración de Presupuesto
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="IntegracionPresupuesto">
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('IntegracionPresupuesto');">General</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('IntegracionPresupuestoAnual');">Anual</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('IntegracionPresupuestoCuatrimestral');">Cuatrimestral</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('IntegracionPresupuestoMensual');">Mensual</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('IntegracionPresupuestoDesarrollo');">Desarrollo</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('IntegracionPresupuestoComparativaAnual');">Comparativa Anual</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('IntegracionPresupuestoComparativaMensual');">Comparativa Mensual</a>
+                                    <!-- <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('IntegracionPresupuestoGraficas');">Graficas</a> -->
+                            </div>
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle agregarcol" href="#" id="PresupuestoEjercido" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                Presupuesto Ejercido
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="PresupuestoEjercido">
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('PresupuestoEjercido');">General</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('PresupuestoEjercidoAnual');">Anual</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('PresupuestoEjercidoCuatrimestral');">Cuatrimestral</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('PresupuestoEjercidoMensual');">Mensual</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('PresupuestoEjercidoDesarrollo');">Desarrollo</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('PresupuestoEjercidoGerencia');">Gerencia</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('PresupuestoEjercidoArea');">Área</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('PresupuestoEjercidoPorcentajeEjercido');">Porcentaje ejercido por ventas</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('PresupuestoEjercidoGraficas');">Graficas</a>
+                                    
+                            </div>
+                        </li>
+                         <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle agregarcol" href="#" id="Egresos" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                Egresos
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="Egresos">
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('Egresos');">General</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('EgresosAnual');">Anual</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('EgresosCuatrimestral');">Cuatrimestral</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('EgresosMensual');">Mensual</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('EgresosArea');">Área</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('EgresosCuentaContable');">Cuenta Contable</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('EgresosFlujo');">Flujo</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('EgresosFactura');">Factura</a>
+                                    <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('EgresosGraficas');">Graficas</a>
+                                </div>
+                        </li>
+                        
+
+<!-- 
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle agregarcol" href="#" id="ReportesVentas" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                Ventas
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="ReportesVentas">
+                                
+                                <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('Prospectos');">Prospectos</a>
+                                
+                                <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('Contratos');">Contratos</a>
+                                
+                                <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('Cancelaciones');">Cancelaciones</a>
+                                
+                                <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('Escrituraciones');">Escrituraciones</a>
+                                
+                                <a class="dropdown-item agregarcol" href="Javascript:Mifuncion('Viviendas%20Libres');">Viviendas Libres</a>
+                                
+                            </div>
+                        </li> -->
+
+
+                </ul>
+            </div>
+    </div>
+
+    <div class="col-1">
+        <button type="button" class="btn btn-success notificaciones">
+                <span class="badge badge-light">4</span>
+        </button>
+    </div>
+
+    <div class="col-2">
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown2" aria-controls="navbarNavDropdown2"
+            aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown2">
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <button class="btn-sm"> 
+                             <img src="Recursos/Generales/Plugins/icons/build/svg/person.svg" height="20" alt="usuario"/>                       
+                            </button>
+                            {{.Usuario.Nombre}}    
+                        </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                        <a class="dropdown-item" href="/configuracion">Configuración</a>
+                        <a class="dropdown-item" href="/editarusuario">Editar usuario</a>
+                        <a class="dropdown-item" href="/logout">Cerrar sesión</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+</nav>
+
+
+<br>
+<!-- <div class="container h-100">
+    <div class="row h-100 justify-content-center align-items-center">
+        <div class="form-group">
+            <label for="buscador" class="labelBuscar">Buscador de algo...:</label>
+            <input type="text" size="50" class="form-control" id="cambiarnombre" placeholder="se ejecuta la busqueda u alguna otra accion" autofocus style="text-transform:uppercase">
+        </div>
+    </div>
+</div> -->
+
+
+<div class="container h-100">
+    <div id="maincontainer">
+        
+        <h4>Se puede incluir algun dashboard</h1>
+
+            
+            
+            <!-- <div class="col-sm-2 er-titulo">
+                Ingreso de Ventas : 
+            </div>
+
+            <div class="col-sm-10 ">
+
+            </div> -->
+
+
+            <div class="container">
+                    <div class="row">
+                        <div class="offset-sm-4 col-sm-4 er-encabezado">
+                            <span class="align-middle span-encabezado">GRUPO INMOBILIARIA AGUILAR</span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-4 er-subencabezado">
+                                <span class="align-middle span-subencab">Construcción de inmuebles comerciales, institucionales y de Servicios.</span>
+                            </div>
+                    </div>
+
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-4 er-subencabezado2">
+                                <span class="align-middle span-subencab2">ESTADO DE RESULTADOS</span>
+                            </div>
+                    </div>
+
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-4 er-subencabezado3">
+                                <span class="align-middle span-periodo">DEL 1 DE ENERO AL 31 DE MARZO DE 2018</span>
+                            </div>
+                    </div>
+
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-ingresos1">
+                                <span class="align-middle span-ingresos1">INGRESOS POR ESCRITURACIÓN:</span>
+                            </div>
+
+                            <div class="col-sm-1 er-ingresosmoney">
+                                    <span class="money">00000000</span>
+                            </div>
+
+                    </div>
+                    
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-ingresos1">
+                                <span class="align-middle span-ingresos1">INGRESOS POR SOBREESCRITURAS:</span>
+                            </div>
+                            <div class="col-sm-1 er-ingresosmoney">
+                                    <span class="money">00000000</span>
+                            </div>
+                    </div>
+                    
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-ingresos1">
+                                <span class="align-middle span-ingresos1">OTROS INGRESOS POR ACABADOS:</span>
+                            </div>
+                            <div class="col-sm-1 er-ingresosmoney">
+                                    <span class="money">00000000</span>
+                            </div>
+                    </div>
+                    
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-ingresos1">
+                                <span class="align-middle span-ingresos1">INGRESOS POR PENALIZACION:</span>
+                            </div>
+                            <div class="col-sm-1 er-ingresosmoney">
+                                    <span class="money">00000000</span>
+                            </div>
+                    </div>
+                    
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-ingresos1">
+                                <span class="align-middle span-ingresos1">OTROS INGRESOS VARIOS:</span>
+                            </div>
+                            <div class="col-sm-1 er-ingresosmoney">
+                                    <span class="money">00000000</span>
+                            </div>
+                    </div>
+                    
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-ingresos1last">
+                                <span class="align-middle span-ingresos1">BONIFICACIONES Y REBAJAS VENTAS:</span>
+                            </div>
+                            <div class="col-sm-1 er-ingresosmoneylast">
+                                    <span class="money">00000000</span>
+                            </div>
+                    </div>
+
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-primertotal">
+                                
+                            </div>
+                            <div class="col-sm-1 er-primertotal1">
+                                    <span class="span-primertotal">00000000</span>
+                            </div>
+
+                    </div>
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-costoventa">
+                                    <span class="align-middle span-ingresos1">COSTO DE VENTAS DE CONSTRUCCION:</span>
+                            </div>
+                            <div class="col-sm-1 er-costoventa1">
+                                    <span class="money">00000000</span>
+                            </div>
+
+                    </div>
+
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-costoobra">
+                                    <span class="align-middle span-ingresos1">COSTO INDIRECTO OBRA:</span>
+                            </div>
+                            <div class="col-sm-1 er-costoobra1">
+                                    <span class="money">00000000</span>
+                            </div>
+
+                    </div> 
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-primertotal">
+                                
+                            </div>
+                            <div class="col-sm-1 er-primertotal1">
+                                    <span class="span-primertotal">00000000</span>
+                            </div>
+
+                    </div>
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-utilidadbruta">
+                                    <span class="align-middle span-ingresos1">UTILIDAD BRUTA:</span>
+                            </div>
+                            <div class="col-sm-1 er-utilidadbruta1">
+                                    <span class="money">00000000</span>
+                            </div>
+                    </div> 
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-gastosadministracion">
+                                    <span class="align-middle span-ingresos1">GASTOS DE ADMINISTRACION:</span>
+                            </div>
+                            <div class="col-sm-1 er-gastosadministracion1">
+                                    <span class="money">00000000</span>
+                            </div>
+                    </div> 
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-gastosventa">
+                                    <span class="align-middle span-ingresos1">GASTOS DE VENTA:</span>
+                            </div>
+                            <div class="col-sm-1 er-gastosventa1">
+                                    <span class="money">00000000</span>
+                            </div>
+
+                    </div> 
+                    
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-depreciacion">
+                                    <span class="align-middle span-ingresos1">DEPRECIACION DEL EJERCICIO:</span>
+                            </div>
+                            <div class="col-sm-1 er-depreciacion1">
+                                    <span class="money">00000000</span>
+                            </div>
+
+                    </div> 
+
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-primertotal">
+                                
+                            </div>
+                            <div class="col-sm-1 er-primertotal1">
+                                    <span class="span-primertotal">00000000</span>
+                            </div>
+
+                    </div>
+
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-utilidadbruta">
+                                    <span class="align-middle span-ingresos1">UTILIDAD DE OPERACION:</span>
+                            </div>
+                            <div class="col-sm-1 er-utilidadbruta1">
+                                    <span class="money">00000000</span>
+                            </div>
+                    </div> 
+
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-depreciacion">
+                                    <span class="align-middle span-ingresos1">GASTOS FINANCIEROS:</span>
+                            </div>
+                            <div class="col-sm-1 er-depreciacion1">
+                                    <span class="money">00000000</span>
+                            </div>
+                    </div> 
+
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-depreciacion">
+                                    <span class="align-middle span-ingresos1">PRODUCTOS FINANCIEROS:</span>
+                            </div>
+                            <div class="col-sm-1 er-depreciacion1">
+                                    <span class="money">00000000</span>
+                            </div>
+                    </div> 
+
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-utilidadbruta">
+                                    <span class="align-middle span-ingresos1">COSTO INTEGRAL DE FINANCIAMIENTO:</span>
+                            </div>
+                            <div class="col-sm-1 er-utilidadbruta1">
+                                    <span class="money">00000000</span>
+                            </div>
+                    </div> 
+
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-depreciacion">
+                                    <span class="align-middle span-ingresos1">PERDIDA NETA DEL PERIODO:</span>
+                            </div>
+                            <div class="col-sm-1 er-depreciacion1">
+                                    <span class="money">00000000</span>
+                            </div>
+                    </div> 
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-depreciacion">
+                                    <span class="align-middle span-ingresos1">PROVISIONES DE ISR:</span>
+                            </div>
+                            <div class="col-sm-1 er-depreciacion1">
+                                    <span class="money">00000000</span>
+                            </div>
+                    </div> 
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-depreciacion">
+                                    <span class="align-middle span-ingresos1">PROVISION DE PARTICIPACION DE UTILIDADES:</span>
+                            </div>
+                            <div class="col-sm-1 er-depreciacion1">
+                                    <span class="money">00000000</span>
+                            </div>
+                    </div> 
+                    <div class="row">
+                            <div class="offset-sm-4 col-sm-3 er-perdidaneta">
+                                    <span class="align-middle span-ingresos1">PERDIDA NETA:</span>
+                            </div>
+                            <div class="col-sm-1 er-perdidaneta1">
+                                    <span class="span-primertotal">00000000</span>
+                            </div>
+                    </div> 
+                    
+
+                    <!-- <div class="row">
+                        <div class="col-sm-6 er-titulo">
+                        <span class="align-middle span-center">Ingresos por escrituración : <span class="money">00000</span></span>
+                        </div>
+                        <div class="col-sm-6 er-titulo">
+                        <span class="align-middle span-center">Ingresos por sobreescrituración : <span class="money">00000</span></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 er-titulo">
+                        <span class="align-middle span-center">Otros Ingresos por Acabados : <span class="money">00000000</span></span>
+                        </div>
+                        <div class="col-sm-6 er-titulo">
+                        <span class="align-middle span-center">Ingresos por penalización : <span class="money">0000000</span></span>
+                        </div>
+                    </div> -->
+            </div>
+
+
+
+    </div>
+</div>
+
+
+
+
+
+
+{{template "footerlayout"}}

@@ -1,0 +1,103 @@
+{{template "headerlayout"}}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+
+    <div class="col-3">
+        <a class="navbar-brand" href="#">
+            <img src="Recursos/Imagenes/logo.png" width="40" height="40" alt="">
+            <span>&nbsp Antiguedad de Saldos</span>
+        </a>
+
+    </div>
+
+    <div class="col-6">
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown"
+            aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link agregarcol" href="/index">Inicio</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-1">
+        <button type="button" class="btn btn-success notificaciones">
+            <span class="badge badge-light">4</span>
+        </button>
+    </div>
+
+    <div class="col-2">
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown2" aria-controls="navbarNavDropdown2"
+            aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown2">
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <button class="btn-sm">
+                            <img src="Recursos/Generales/Plugins/icons/build/svg/person.svg" height="20" alt="usuario" />
+                        </button>
+                        {{.Usuario.Nombre}}
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                        <a class="dropdown-item" href="/configuracion">Configuración</a>
+                        <a class="dropdown-item" href="/editarusuario">Editar usuario</a>
+                        <a class="dropdown-item" href="/logout">Cerrar sesión</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+    </div>
+
+</nav>
+
+<br>
+<div class="container h-100">
+    <div class="row h-100 justify-content-center align-items-center">
+        <form class="form-inline" id="formpagos">
+            <div class="form-group">
+                <label for="validationDefault01">Fecha de Inicio: &nbsp; </label>
+                <input type="date" class="form-control" name="inicio" id="inicio" >
+            </div>
+            <div class="form-group">
+                <label for="validationDefault02">&nbsp;&nbsp; Fecha de Fin:&nbsp;&nbsp;</label>
+                <input type="date" class="form-control" name="fin" id="fin">
+            </div>
+            &nbsp;&nbsp;&nbsp;
+            <div class="form-group">
+                <select name="base" id="base" required>
+                    <option value="x">&nbsp;&nbsp;Selecciona una base de datos&nbsp;&nbsp;</option>
+                    <option value="corporativo_aguilar">CORPORATIVO AGUILAR</option>
+                    <option value="administrativa">ADMINISTRATIVA</option>
+                    <option value="villas_doradas">VILLAS DORADAS</option>
+                </select>
+            </div>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            <div class="form-group">
+                <button type="btn btn-sm btn-primary" onclick="Pagos();"></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<div class="container h-100">
+    <hr class="hrmain">
+
+    <div id="maincontainer">
+
+
+
+    </div>
+</div>
+
+
+{{template "footerlayout"}}

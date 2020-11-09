@@ -1,0 +1,66 @@
+{{template "headerlayout"}} {{template "navingbar" .}}
+
+<hr>
+
+<div class="container">
+    <div class="centrado">
+        <h2>{{.Usuario.Nombre}} {{.Usuario.Apellidos}}
+
+        </h2>
+    </div>
+</div>
+
+<div class="container">
+    <div class="centrado">
+        <h1 class="display-4">Administración</h1>
+    </div>
+</div>
+
+<hr>
+
+<!-- <div class="container">
+
+    <a class="btn btn-primary btn-large padd" href="Javascript:MyFunc('Administracion');" role="button">Mesas</a>
+
+</div> -->
+
+<div class="container">
+    <form method="POST" action="/configurarmesasdiaras">
+        <div class="col-12">
+            <div class="form-group row">
+                <label for="mesasdiarias" class="col-sm-2 col-form-label negrita">Mesas disponibles:</label>
+                <div class="col-sm-2">
+                    <input type="number" class="form-control" id="mesasdiarias" name="mesasdiarias" value="{{.MesasDisponibles}}" required="">
+                </div>
+
+                <div class="col-sm-2">
+                    <button type="submit" class="btn btn-success">Actualizar Mesas Disponibles</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<br>
+<hr>
+<br>
+<div class="container">
+    <form action="#" id="formventas" method="POST">
+        <div class="col-12">
+            <div class="form-group row">
+                <label for="fechaarchivo" class="col-sm-5 col-form-label negrita highgreen" style="font-size: 2.5em;"> Limpiar Ventas Diarias: </label>
+                <div class="col-sm-6">
+                    <a class="btn btn-danger btn-large padd" href="Javascript:EliminarVenta('GG');" role="button">Eliminar Base de Datos</a>&nbsp;
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="container" id="maincontainer">
+
+</div>
+
+<script>
+    administracionit.classList.add("page_selected");
+</script>
+{{template "footerlayout"}}
