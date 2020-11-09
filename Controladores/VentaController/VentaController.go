@@ -981,9 +981,10 @@ func ProductosVendidos(ctx iris.Context) {
 	  </table>`, ac.FormatMoney(totalsuma))
 
 		htmlcode += fmt.Sprintf(`
-  		<a class="btn btn-warning btn-large padd" href="Javascript:Traspasos('%v');" role="button">Traspasos</a>&nbsp;
-  		<a class="btn btn-danger btn-large padd" href="Javascript:Cancelacion('%v');" role="button">Cancelar Mesa</a>&nbsp;
-	  `, idmesa, idmesa)
+	  <div class="container centrado">
+	  <a class="btn btn-warning btn-large padd" href="Javascript:Traspasos('%v');" role="button">Traspasos</a>&nbsp;
+	  <a class="btn btn-danger btn-large padd" href="Javascript:Cancelacion('%v');" role="button">Cancelar Mesa</a>&nbsp;
+	  </div>`, mesa.ID.Hex(), mesa.ID.Hex())
 
 	}
 
@@ -1063,9 +1064,7 @@ func ProductosAgregadosEnModal(ctx iris.Context) {
 	<div class="container centrado">
 	<a class="btn btn-warning btn-large padd" href="Javascript:Traspasos('%v');" role="button">Traspasos</a>&nbsp;
 	<a class="btn btn-danger btn-large padd" href="Javascript:Cancelacion('%v');" role="button">Cancelar Mesa</a>&nbsp;
-	</div>
-
-`, mesa.ID.Hex(), mesa.ID.Hex())
+	</div>`, mesa.ID.Hex(), mesa.ID.Hex())
 
 	ctx.HTML(htmlcode)
 
