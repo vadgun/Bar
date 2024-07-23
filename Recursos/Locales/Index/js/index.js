@@ -21,7 +21,6 @@ $(document).ready(function() {
             if (parseInt(result) == 33) {
                 document.body.style.backgroundImage = 'url("Recursos/Imagenes/Fondos/' + 1 + '.jpg")';
                 document.getElementById('cambiafondos').href = "Javascript:CambiarFondo(1)";
-
             }
         },
         error: function(xhr, status) {
@@ -31,7 +30,7 @@ $(document).ready(function() {
             console.log("Proceso Terminado")
         }
     });
-
+    
 });
 
 function CambiarFondo(data) {
@@ -85,13 +84,12 @@ function EliminarVenta(data) {
 }
 
 function LetrasBlancas() {
-    document.body.style.color = "#ffffff";
+    document.body.style.color = "#99bbff";
 
 }
 
 function LetrasNegras() {
     document.body.style.color = "#000000";
-
 }
 
 
@@ -397,8 +395,17 @@ function EliminarDeRefrigerador(data) {
 }
 
 function CerrarVenta(data) {
+    const buttons = document.querySelectorAll('[data-mesa]');
+    var numesa = ""
+    
+    for (x of buttons) {
+        let id = x.getAttribute('data-id');
+        if (id == data){
+            numesa = x.getAttribute('data-mesa');
+        }
+    }
 
-    var r = confirm("Cerrar Venta de Mesa");
+    var r = confirm("Desea cerrar la mesa "+numesa+" ?");
     fecha = $("#fechaarchivo").val();
 
     data += ":" + fecha
@@ -412,7 +419,8 @@ function CerrarVenta(data) {
             dataType: 'html',
             success: function(result) {
                 console.log("Operacion Realizada con Exito");
-                $("#maincontainer").html(result);
+                //$("#maincontainer").html(result);
+                console.log(result);
             },
             error: function(xhr, status) {
                 console.log("Error en la consulta")
@@ -421,7 +429,7 @@ function CerrarVenta(data) {
                 console.log("Proceso Terminado2")
             }
         });
-        VerificaMesas(fecha);
+        //VerificaMesas(fecha);
 
     } else {
         return false;
@@ -458,45 +466,20 @@ $('#ModalProductos').on('show.bs.modal', function(e) {
 $('#ModalProductos').on('hidden.bs.modal', function(e) {
     $("#modalcontainerforprod").html("");
     $("#serviciosmodal").html("");
-
     fecha = $("#fechaarchivo").val();
-    console.log("Fecha al cerrar el modal " + fecha);
-
-    // inputhidden = document.createElement("input");
-    // inputhidden.type = "hidden";
-    // inputhidden.name = "fechaarchivo";
-    // inputhidden.value = fecha
-
-    // form = document.getElementById("formventas")
-    // form.appendChild(inputhidden);
-
-    VerificaMesas(fecha);
-
-
-
-    // form.submit();
-
+    //VerificaMesas(fecha);
 });
 
 function AgregarAMesa(data) {
-
     console.log(data);
-
 }
 
 function ObtenDatosDeMesa(data) {
 
     idmesa = $("#ModalProductos input[name=idmesa]").val();
-    console.log(" idmesa", idmesa)
-
     data = idmesa + ":" + data
-    console.log(" idmesa + data ", data);
-
     cadena = data.split(":");
-
     console.log(cadena)
-
-    console.log(data);
     $.ajax({
         url: '/productosAgregadosEnModal',
         data: { data: data },
@@ -519,16 +502,8 @@ function ObtenDatosDeMesa(data) {
 function ObtenDatosDeMesaDesdePromocion(data) {
 
     idmesa = $("#ModalProductos input[name=idmesa]").val();
-    console.log(" idmesa", idmesa)
-
     data = idmesa + ":" + data
-    console.log(" idmesa + data ", data);
-
     cadena = data.split(":");
-
-    console.log(cadena)
-
-    console.log(data);
     $.ajax({
         url: '/productosAgregadosEnModalDesdePromo',
         data: { data: data },
@@ -552,9 +527,6 @@ function ObtenDatosDeMesaDesdePromocion(data) {
 function ConvierteAPromo(data) {
 
     if (data == "promo") {
-        // conversionpromo = $("#conversionpromo").html(data);
-        // conversionpromo = $("#conversionpromo");
-
         var conversionpromo = document.getElementById("conversionpromo");
 
         label1 = document.createElement("label");
@@ -571,20 +543,8 @@ function ConvierteAPromo(data) {
         a1.innerHTML = "+";
         a1.setAttribute("href", "Javascript:AgregarArticulo();");
 
-        // a2 = document.createElement("a");
-        // a2.classList.add("btn");
-        // a2.classList.add("btn-success");
-        // a2.setAttribute("role", "button");
-        // a2.setAttribute("href", "Javascript:alert('a2');");
-        // a2.innerHTML = "-";
-
         conversionpromo.appendChild(label1);
         conversionpromo.appendChild(a1);
-        // conversionpromo.appendChild(a2);
-
-
-        console.log(conversionpromo);
-
     } else {
         $("#conversionpromo").html("");
         $("#promoproductos").html("");
@@ -594,20 +554,14 @@ function ConvierteAPromo(data) {
 }
 
 function AgregarArticulo() {
-
-    // var conversionpromo = document.getElementById("conversionpromo");
     var promoproductos = document.getElementById("promoproductos");
-
     hijos = promoproductos.childElementCount;
 
     articulist = document.getElementsByClassName("articulito");
-
-
     numarti = articulist.length;
+
     var articulosagregados = document.getElementById("articulosagregados");
     articulosagregados.value = numarti + 1
-
-    // alert("tiene " + hijos)
 
     divsm4 = document.createElement("div");
     divsm2 = document.createElement("div");
@@ -617,17 +571,8 @@ function AgregarArticulo() {
     divsm2.classList.add("col-sm-4");
     divsm22.classList.add("col-sm-2");
 
-
-
-
     select1 = document.createElement("select");
     select1.classList.add("form-control");
-
-
-    // option1 = document.createElement("option");
-    // option1.setAttribute("value", "Selecciona el articulo");
-    // option1.innerHTML = "opcion 1";
-    // select1.appendChild(option1);
 
     $.ajax({
         url: '/productosASelect',
@@ -646,28 +591,14 @@ function AgregarArticulo() {
         }
     });
 
-    // select1.innerHTML = `<option value="familiar">Familiar</option>
-    // <option value="media">Coronita Media</option>`;
-
-
     select1.setAttribute("name", "productoid" + (numarti));
     select1.setAttribute("id", "productoid" + (numarti));
-
-    // input1 = document.createElement("input");
-    // input1.setAttribute("type", "");
-    // input1.setAttribute("name", "productoname" + (hijos + 1));
-    // input1.setAttribute("id", "poductoid" + (hijos + 1));
-    // input1.setAttribute("value", "poductoid" + (hijos + 1));
-
 
     input2 = document.createElement("input");
     input2.setAttribute("type", "number");
     input2.setAttribute("name", "cantidadprod" + (numarti));
     input2.setAttribute("id", "cantidadpro" + (numarti));
     input2.classList.add("form-control");
-
-
-
 
     label1 = document.createElement("label");
     label1.classList.add("col-sm-2");
@@ -714,19 +645,6 @@ function EliminarArticulo() {
     numarti = articulist.length;
     var articulosagregados = document.getElementById("articulosagregados");
     articulosagregados.value = numarti;
-
-    //i=5 i<=10 5 6 7 8 9
-
-
-
-
-
-
-    // promoproductos.removeChild(promoproductos.lastChild);
-    // promoproductos.removeChild(promoproductos.lastChild);
-    // promoproductos.removeChild(promoproductos.lastChild);
-    // promoproductos.removeChild(promoproductos.lastChild);
-    // promoproductos.removeChild(promoproductos.lastChild);
 }
 
 

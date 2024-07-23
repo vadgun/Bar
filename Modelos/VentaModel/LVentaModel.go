@@ -1,153 +1,147 @@
 package ventamodel
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"time"
 
 	conexiones "github.com/vadgun/Bar/Conexiones"
+	db "github.com/vadgun/Bar/Modelos/Db"
 	inventariomodel "github.com/vadgun/Bar/Modelos/InventarioModel"
-	mgo "gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"log"
 )
 
-//ExtraeMesas -> Extrae las mesas dadas de alta
+// ExtraeMesas -> Extrae las mesas dadas de alta
 func ExtraeMesas() int {
 	var mesas ConfigurarMesas
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	var err error
+
+	client, _ := db.ConectarMongoDB()
+	configuraciones := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_CFG)
+	opts := options.FindOne().SetSort(bson.M{"Configuracion": 1})
+	err = configuraciones.FindOne(context.TODO(), bson.M{"Configuracion": "Mesas"}, opts).Decode(&mesas)
 	if err != nil {
-		log.Fatal(err)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err)
+		}
 	}
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_CFG)
-	err1 := c.Find(bson.M{"Configuracion": "Mesas"}).One(&mesas)
-	if err1 != nil {
-		fmt.Println(err1)
-	}
 	return mesas.Disponibles
-
 }
 
-//ActualizarMesasDiarias -> Actualizara el numero de mesas para crear diariamente
+// ActualizarMesasDiarias -> Actualizara el numero de mesas para crear diariamente
 func ActualizarMesasDiarias(numero int) {
+	client, _ := db.ConectarMongoDB()
 
-	var mesas ConfigurarMesas
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	configuraciones := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_CFG)
+	opts := options.FindOneAndUpdate().SetUpsert(true)
+	filter := bson.M{"Configuracion": "Mesas"}
+	update := bson.M{"$set": bson.M{"Disponibles": numero}}
+	var updatedDocument bson.M
+	err := configuraciones.FindOneAndUpdate(
+		context.TODO(),
+		filter,
+		update,
+		opts,
+	).Decode(&updatedDocument)
 	if err != nil {
-		log.Fatal(err)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return
+		}
+		log.Println(err)
+		fmt.Println("Mesas no actualizadas")
 	}
-
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_CFG)
-	err1 := c.Find(bson.M{"Configuracion": "Mesas"}).One(&mesas)
-	if err1 != nil {
-		fmt.Println(err1)
-	}
-	mesas.Disponibles = numero
-
-	errx := c.UpdateId(mesas.ID, mesas)
-	if errx != nil {
-		fmt.Println(errx)
-	}
+	fmt.Println("Mesas actualizadas")
 
 }
 
-//GuardaMesaDiaria -> Crea la mesa diaria con fecha del dia, numero de mesa y status desocupado
+// GuardaMesaDiaria -> Crea la mesa diaria con fecha del dia, numero de mesa y status desocupado
 func GuardaMesaDiaria(mesa Mesa) {
-
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	mesa.ID = primitive.NewObjectID()
+	client, _ := db.ConectarMongoDB()
+	mesasdiarias := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_MD)
+	res, err := mesasdiarias.InsertOne(context.TODO(), mesa)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	mesa.ID = bson.NewObjectId()
-
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_MD)
-	errx := c.Insert(mesa)
-	if errx != nil {
-		fmt.Println(errx)
-	}
-
+	fmt.Printf("Mesa diaria insertada ID %v\n", res.InsertedID)
 }
 
-//BuscarVentasDiarias -> Busca por dia las mesas diarias
+// BuscarVentasDiarias -> Busca por dia las mesas diarias
 func BuscarVentasDiarias(fecha time.Time) []Mesa {
 	var mesasdiarias []Mesa
 
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_MD)
-	defer session.Close()
+	client, _ := db.ConectarMongoDB()
+	mesasdiariascol := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_MD)
+	opts := options.Find().SetSort(bson.M{"Mesa": 1})
+	cursor, err := mesasdiariascol.Find(context.TODO(), bson.M{"Fecha": fecha}, opts)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err, "Error en BuscarVentasDiarias")
 	}
-
-	errx := c.Find(bson.M{"Fecha": fecha}).Sort("Mesa").All(&mesasdiarias)
-	if errx != nil {
-		fmt.Println(errx)
+	if err = cursor.All(context.TODO(), &mesasdiarias); err != nil {
+		fmt.Println(err, "Error en BuscarVentasDiarias")
 	}
 
 	return mesasdiarias
 }
 
-//ExtraeMesa -> Regresa la mesa solicitada
+// ExtraeMesa -> Regresa la mesa solicitada
 func ExtraeMesa(idmesa string) Mesa {
-
-	idobjmesa := bson.ObjectIdHex(idmesa)
+	idobjmesa, err := primitive.ObjectIDFromHex(idmesa)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	var mesa Mesa
 
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	client, _ := db.ConectarMongoDB()
+	mesasdiarias := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_MD)
+	opts := options.FindOne().SetSort(bson.M{"Mesa": 1})
+	err = mesasdiarias.FindOne(context.TODO(), bson.M{"_id": idobjmesa}, opts).Decode(&mesa)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_MD)
-	err1 := c.FindId(idobjmesa).One(&mesa)
-	if err1 != nil {
-		fmt.Println(err1)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Id de Mesa no encontrada")
+		}
 	}
 
 	return mesa
-
 }
 
-//CierraMesa -> Cambia los status de la mesa sin borrar el registro para la venta diaria y el gran total que se esta buscando
+// CierraMesa -> Cambia los status de la mesa sin borrar el registro para la venta diaria y el gran total que se esta buscando
 func CierraMesa(mesaX Mesa) {
 
-	var mesa Mesa
+	var err error
 
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	client, _ := db.ConectarMongoDB()
+	mesasdiarias := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_MD)
+
+	filter := bson.M{"_id": mesaX.ID}
+	update := bson.M{"$set": bson.M{"Estatus": false, "Abierta": false, "Cerrada": true}}
+	opts2 := options.Update().SetUpsert(false)
+	result, err := mesasdiarias.UpdateOne(context.TODO(), filter, update, opts2)
 	if err != nil {
-		log.Fatal(err)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Id de Mesa no encontrada")
+		}
 	}
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_MD)
-	err1 := c.FindId(mesaX.ID).One(&mesa)
-	if err1 != nil {
-		fmt.Println(err1)
-	}
-
-	mesa.Estatus = false
-	mesa.Abierta = false
-	mesa.Cerrada = true
-
-	err2 := c.UpdateId(mesa.ID, mesa)
-	if err2 != nil {
-		fmt.Println(err2)
+	if result.MatchedCount != 0 {
+		fmt.Println("Mesa actualizada: ", mesaX.Mesa)
 	}
 
 	var cantidades []int
-	var objectsids []bson.ObjectId
+	var objectsids []primitive.ObjectID
 
 	var nuevamesa Mesa
-	nuevamesa.ID = bson.NewObjectId()
-	nuevamesa.Fecha = mesa.Fecha
-	nuevamesa.Mesa = mesa.Mesa
+	nuevamesa.ID = primitive.NewObjectID()
+	nuevamesa.Fecha = mesaX.Fecha
+	nuevamesa.Mesa = mesaX.Mesa
 	nuevamesa.Abierta = true
 	nuevamesa.Cerrada = false
 	nuevamesa.Estatus = false
@@ -155,80 +149,79 @@ func CierraMesa(mesaX Mesa) {
 	nuevamesa.Cantidades = cantidades
 	nuevamesa.GranTotal = 0
 
-	err3 := c.Insert(nuevamesa)
-	if err3 != nil {
-		fmt.Println(err3)
+	res, err := mesasdiarias.InsertOne(context.TODO(), nuevamesa)
+	if err != nil {
+		fmt.Println(err, "Error insertando mesa nueva")
 	}
+
+	fmt.Printf("Mesa nueva insertada %v\n", res.InsertedID)
 
 }
 
-//EliminarColeccionVentasDiarias -> Elimina la Base de Datos de la coleccion de mesas diarias.
+// EliminarColeccionVentasDiarias -> Elimina la Base de Datos de la coleccion de mesas diarias.
 func EliminarColeccionVentasDiarias() {
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
-	if err != nil {
-		log.Fatal(err)
+	client, _ := db.ConectarMongoDB()
+	ventadiaria := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_MD)
+	if err := ventadiaria.Drop(context.TODO()); err != nil {
+		fmt.Println("Error eliminando la coleccion")
 	}
-
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_MD)
-	err1 := c.DropCollection()
-	if err1 != nil {
-		fmt.Println(err1)
-	}
-
 }
 
-//ActualizarMesaDiaria -> Actualiza la mesa diaria
+// ActualizarMesaDiaria -> Actualiza la mesa diaria
 func ActualizarMesaDiaria(mesa Mesa) {
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	var sumatotal float64
 	for k, v := range mesa.Cantidades {
 
 		precio := PrecioProducto(mesa.Productos[k])
 		sumatotal += (float64(v) * precio)
 
-		fmt.Println("Suma ->", sumatotal, "   precio ->", precio, " v ->", v)
 	}
 
-	mesa.Estatus = true
-	mesa.GranTotal = sumatotal
-
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_MD)
-	err1 := c.UpdateId(mesa.ID, mesa)
-	if err1 != nil {
-		fmt.Println(err1)
-	}
-}
-
-//ActuailzaAlmacenDesdeModalPromo -> Actualiza la cantidad de existencia en el Almacen Refrigerador
-func ActuailzaAlmacenDesdeModalPromo(producto bson.ObjectId, cantidad int) {
-
-	var almacen inventariomodel.Almacen
-	var promo inventariomodel.Producto
-
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	client, _ := db.ConectarMongoDB()
+	mesasdiarias := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_MD)
+	opts := options.Update().SetUpsert(true)
+	filter := bson.M{"_id": mesa.ID}
+	update := bson.M{"$set": bson.M{"Estatus": true, "GranTotal": sumatotal, "Productos": mesa.Productos, "Cantidades": mesa.Cantidades}}
+	result, err := mesasdiarias.UpdateOne(context.TODO(), filter, update, opts)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_AL)
-	errx := c.Find(bson.M{"Nombre": "Refrigerador"}).One(&almacen)
-	if errx != nil {
-		fmt.Println(errx)
+	if result.MatchedCount != 0 {
+		fmt.Println("Mesa actualizada: ", mesa.Mesa)
+	}
+	if result.UpsertedCount != 0 {
+		fmt.Printf("Se inserto una nueva mesa %v\n", result.UpsertedID)
+	}
+
+}
+
+// ActuailzaAlmacenDesdeModalPromo -> Actualiza la cantidad de existencia en el Almacen Refrigerador
+func ActuailzaAlmacenDesdeModalPromo(producto primitive.ObjectID, cantidad int) {
+
+	var almacen inventariomodel.Almacen
+	var promo inventariomodel.Producto
+	var err error
+
+	client, _ := db.ConectarMongoDB()
+	// Extrae el Almacen
+	almacenes := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_AL)
+	opts := options.FindOne().SetSort(bson.M{"Nombre": 1})
+	filter := bson.M{"Nombre": "Refrigerador"}
+	err = almacenes.FindOne(context.TODO(), filter, opts).Decode(&almacen)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Almacen no encontrado")
+		}
 	}
 
 	//Extrae la Promo
-
-	d := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_P)
-	errd := d.FindId(producto).One(&promo)
-	if errd != nil {
-		fmt.Println(errx)
+	productos := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_P)
+	err = productos.FindOne(context.TODO(), bson.M{"_id": producto}, opts).Decode(&promo)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Id de Promo no encontrada")
+		}
 	}
 
 	var encontrado bool
@@ -253,39 +246,36 @@ func ActuailzaAlmacenDesdeModalPromo(producto bson.ObjectId, cantidad int) {
 
 	}
 
-	// fmt.Println("encontrado ->", encontrado)
-	// fmt.Println("almacen ->", almacen)
-	// fmt.Println("promo ->", promo)
-	// fmt.Println("contador ->", contador)
-	// fmt.Println("contador2 ->", contador2)
-	// fmt.Println("cantidad ->", cantidad)
-
-	// if encontrado {
-	// 	almacen.Existencia[contador] = almacen.Existencia[contador] - (cantidad * contador2)
-	// }
-
-	err1 := c.UpdateId(almacen.ID, almacen)
-	if err1 != nil {
-		fmt.Println(err1)
+	// Actualizar Almacen
+	filter = bson.M{"_id": almacen.ID}
+	update := bson.M{"$set": bson.M{"Existencia": almacen.Existencia}}
+	result, err := almacenes.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Id de Almacen Modal no encontrada")
+		}
 	}
 
+	if result.MatchedCount != 0 {
+		fmt.Println("Almacen Modal actualizado: ", almacen.Nombre)
+	}
 }
 
-//ActuailzaAlmacenDesdeModal -> Actualiza la cantidad de existencia en el Almacen Refrigerador
-func ActuailzaAlmacenDesdeModal(producto bson.ObjectId, cantidad int) {
+// ActuailzaAlmacenDesdeModal -> Actualiza la cantidad de existencia en el Almacen Refrigerador
+func ActuailzaAlmacenDesdeModal(producto primitive.ObjectID, cantidad int) {
 
 	var almacen inventariomodel.Almacen
+	var err error
 
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	client, _ := db.ConectarMongoDB()
+	almacenes := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_AL)
+	opts := options.FindOne().SetSort(bson.M{"Nombre": 1})
+	filter := bson.M{"Nombre": "Refrigerador"}
+	err = almacenes.FindOne(context.TODO(), filter, opts).Decode(&almacen)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_AL)
-	errx := c.Find(bson.M{"Nombre": "Refrigerador"}).One(&almacen)
-	if errx != nil {
-		fmt.Println(errx)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Almacen no encontrado")
+		}
 	}
 
 	encontrado := false
@@ -303,15 +293,22 @@ func ActuailzaAlmacenDesdeModal(producto bson.ObjectId, cantidad int) {
 		almacen.Existencia[contador] = almacen.Existencia[contador] - cantidad
 	}
 
-	err1 := c.UpdateId(almacen.ID, almacen)
-	if err1 != nil {
-		fmt.Println(err1)
+	filter = bson.M{"_id": almacen.ID}
+	update := bson.M{"$set": bson.M{"Existencia": almacen.Existencia}}
+	result, err := almacenes.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Id de Almacen no encontrado")
+		}
 	}
 
+	if result.MatchedCount != 0 {
+		fmt.Println("Almacen actualizado: ", almacen.Nombre)
+	}
 }
 
-//PrecioProducto -> Hace una llamada a productos y regresa su precio al publico mediante su id
-func PrecioProducto(producto bson.ObjectId) float64 {
+// PrecioProducto -> Hace una llamada a productos y regresa su precio al publico mediante su id
+func PrecioProducto(producto primitive.ObjectID) float64 {
 
 	prod := inventariomodel.ExtraeProducto(producto.Hex())
 
@@ -319,48 +316,45 @@ func PrecioProducto(producto bson.ObjectId) float64 {
 
 }
 
-//ExtraeFondo -> Extrae la configuracion del fondo de pantalla
+// ExtraeFondo -> Extrae la configuracion del fondo de pantalla
 func ExtraeFondo() int {
-
 	var fondo Fondo
+	var err error
 
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	client, _ := db.ConectarMongoDB()
+	configuraciones := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_CFG)
+	opts := options.FindOne().SetSort(bson.M{"Configuracion": 1})
+	err = configuraciones.FindOne(context.TODO(), bson.M{"Configuracion": "Fondo"}, opts).Decode(&fondo)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_CFG)
-	errx := c.Find(bson.M{"Configuracion": "Fondo"}).One(&fondo)
-	if errx != nil {
-		fmt.Println(errx)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err)
+		}
 	}
 
 	return fondo.Disponibles
-
 }
 
-//ActualizaFondo -> Actualiza la configuracion del fondo de pantalla
+// ActualizaFondo -> Actualiza la configuracion del fondo de pantalla
 func ActualizaFondo(fondint int) {
-	var fondo Fondo
+	client, _ := db.ConectarMongoDB()
 
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	configuraciones := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_CFG)
+	opts := options.FindOneAndUpdate().SetUpsert(true)
+	filter := bson.M{"Configuracion": "Fondo"}
+	update := bson.M{"$set": bson.M{"Disponibles": fondint}}
+	var updatedDocument bson.M
+	err := configuraciones.FindOneAndUpdate(
+		context.TODO(),
+		filter,
+		update,
+		opts,
+	).Decode(&updatedDocument)
 	if err != nil {
-		log.Fatal(err)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			log.Println(err)
+			fmt.Println("Fondo no actualizado")
+		}
 	}
-
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_CFG)
-	errx := c.Find(bson.M{"Configuracion": "Fondo"}).One(&fondo)
-	if errx != nil {
-		fmt.Println(errx)
-	}
-
-	fondo.Disponibles = fondint
-
-	err1 := c.UpdateId(fondo.ID, fondo)
-	if err1 != nil {
-		fmt.Println(err1)
-	}
+	fmt.Println("Fondo actualizado")
 
 }

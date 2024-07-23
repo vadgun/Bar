@@ -2,42 +2,53 @@ package inventariomodel
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
-	conexiones "github.com/vadgun/Bar/Conexiones"
-	mgo "gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
-	"image/jpeg"
 	"log"
 	"os"
 	"strconv"
+
+	conexiones "github.com/vadgun/Bar/Conexiones"
+	db "github.com/vadgun/Bar/Modelos/Db"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/gridfs"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-//GuardaProducto -> Guarda el producto en la Base de datos
+func productos(client *mongo.Client) *mongo.Collection {
+	var productos *mongo.Collection
+	productos = client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_P)
+	return productos
+}
+
+// GuardaProducto -> Guarda el producto en la Base de datos
 func GuardaProducto(producto Producto) bool {
 
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
-	if err != nil {
-		panic(err)
-	}
+	client, _ := db.ConectarMongoDB()
+	productos := productos(client)
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_P)
-	err1 := c.Insert(producto)
-	if err1 != nil {
-		fmt.Println(err1)
+	res, err := productos.InsertOne(context.TODO(), producto)
+	if err != nil {
+		fmt.Println(err, "Error Agregando el producto")
 		return false
-	} else {
-		fmt.Println(" -> ", producto.Nombre, " Agregado")
-		return true
 	}
+	fmt.Printf("Producto Agregado : %v, %v\n", producto.Nombre, res.InsertedID)
+	return true
 
 }
 
-func UploadImageToMongo(path string, namefile string) bson.ObjectId {
-	db, err := mgo.Dial(conexiones.MONGO_SERVER)
-	check(err, "Error al conectar con mongo")
-	base := db.DB(conexiones.MONGO_DB)
+func UploadImageToMongo(path string, namefile string) primitive.ObjectID {
+
+	client, _ := db.ConectarMongoDB()
+	bucket, err := gridfs.NewBucket(client.Database("Bar"))
+	if err != nil {
+		fmt.Println("Error creating GridFS bucket")
+	}
+
 	file2, err := os.Open(path + "/" + namefile)
 	check(err, "Error al abrir el archivo o el archivo no existe")
 	defer file2.Close()
@@ -46,239 +57,238 @@ func UploadImageToMongo(path string, namefile string) bson.ObjectId {
 	bs := make([]byte, stat.Size()) // read the file
 	_, err = file2.Read(bs)
 	check(err, "Error al crear objeto que contendrá el archivo")
-	img, err := base.GridFS("ImagenesProducto").Create(namefile)
-	ids_img := img.Id()
-	check(err, "error al crear archivo en mongo")
-	_, err = img.Write(bs)
-	check(err, "error al escribir archivo en mongo")
-	fmt.Println("File uploaded successfully to mongo ")
-	err = img.Close()
-	check(err, "error al cerrar img de mongo")
-	db.Close()
-	idimg := getObjectIdToInterface(ids_img)
-	return idimg
-}
 
-func getObjectIdToInterface(i interface{}) bson.ObjectId {
-	var v = i.(bson.ObjectId)
-	return v
-}
-
-func UpdateImgArt(idimg bson.ObjectId, id bson.ObjectId) {
-	c, s := conectMgoPersonal()
-	defer s.Close()
-	// err := c.Update(bson.M{"_id": id}, bson.M{"$push": bson.M{"ActaNacimiento": idimg}})
-	err := c.Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"Imagen": idimg}})
+	fileID, err := bucket.UploadFromStream(namefile, bytes.NewBuffer(bs))
 	if err != nil {
-		panic(err)
-	} else {
-		fmt.Println("Imagen de Producto Updated  :)")
+		log.Fatal(err)
 	}
+	fmt.Printf("new file created with ID %s", fileID)
+	return fileID
 }
 
-func conectMgoPersonal() (*mgo.Collection, *mgo.Session) {
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
+func UpdateImgArt(idimg primitive.ObjectID, id primitive.ObjectID) {
+
+	client, _ := db.ConectarMongoDB()
+	productos := productos(client)
+
+	filter := bson.M{"_id": id}
+	update := bson.M{"$set": bson.M{"Imagen": idimg}}
+	opts2 := options.Update().SetUpsert(false)
+	result, err := productos.UpdateOne(context.TODO(), filter, update, opts2)
 	if err != nil {
-		panic(err)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Id de Imagen no encontrada")
+		}
 	}
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_P)
-	return c, session
+
+	if result.MatchedCount != 0 {
+		fmt.Println("Id de imagen actualizada: ")
+		return
+	}
+
 }
 
 func check(err error, mensaje string) {
 	if err != nil {
+		fmt.Println("Error en :", mensaje)
 		panic(err)
 	}
 }
 
-func TraerImagenActa(idimg bson.ObjectId) string {
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+func TraerImagenActa(idimg primitive.ObjectID) string {
+	client, err := db.ConectarMongoDB()
+	check(err, "Error conectando a MongoDB")
+	bucket, err := gridfs.NewBucket(client.Database("Bar"))
+	check(err, "Error creando el bucket de GridFS")
+	downloadStream, err := bucket.OpenDownloadStream(idimg)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer downloadStream.Close()
 
-	check(err, "Error al conectar con MongoDB")
-	Base := session.DB(conexiones.MONGO_DB)
+	buf := make([]byte, downloadStream.GetFile().Length)
+	_, err = downloadStream.Read(buf)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	img, err1 := Base.GridFS("ImagenesProducto").OpenId(idimg)
-	check(err1, "Error al leer Imagen de MONGO: "+idimg.Hex())
+	// Codificar el archivo en Base64
+	base64Image := base64.StdEncoding.EncodeToString(buf)
 
-	b := make([]byte, img.Size())
-	n, err := img.Read(b)
-	check(err, "Error al crear mapa de bytes")
-
-	fmt.Println("N -> ", n)
-	imagen, err := jpeg.Decode(bytes.NewReader(b))
-	check(err, "Error al decodificar")
-	buffer := new(bytes.Buffer)
-
-	err2 := jpeg.Encode(buffer, imagen, nil)
-	check(err2, "Error al codificar.")
-
-	str := base64.StdEncoding.EncodeToString(buffer.Bytes())
-
-	defer img.Close()
-
-	return str
-
+	return base64Image
 }
 
-//TodosLosProductos -> Regresa todos los productos para una tabla la cual tendra accines para agregar al almacen
+// TodosLosProductos -> Regresa todos los productos para una tabla la cual tendra accines para agregar al almacen
 func TodosLosProductos() []Producto {
 
-	var productos []Producto
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	var productosAll []Producto
+	client, _ := db.ConectarMongoDB()
+	productoscol := productos(client)
+	filter := bson.M{}
+	opts := options.Find().SetSort(bson.M{"Nombre": 1})
+
+	cursor, err := productoscol.Find(context.TODO(), filter, opts)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err, "Error en Buscar todos los productos")
+	}
+	if err = cursor.All(context.TODO(), &productosAll); err != nil {
+		fmt.Println(err, "Error en Buscar Todos los productos")
 	}
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_P)
-	err1 := c.Find(bson.M{}).Sort("Nombre").All(&productos)
-	if err1 != nil {
-		fmt.Println(err1)
-	}
-
-	return productos
+	return productosAll
 }
 
-//ExtraeBotellas -> Regresa unicamente las botellas
+// ExtraeBotellas -> Regresa unicamente las botellas
 func ExtraeBotellas() []Producto {
+
 	var botellas []Producto
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	client, _ := db.ConectarMongoDB()
+	productoscol := productos(client)
+	filter := bson.M{"Categoria": "botella"}
+	opts := options.Find().SetSort(bson.M{"Nombre": 1})
+
+	cursor, err := productoscol.Find(context.TODO(), filter, opts)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err, "Error en Buscar Botellas")
+	}
+	if err = cursor.All(context.TODO(), &botellas); err != nil {
+		fmt.Println(err, "Error en Buscar Botellas")
 	}
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_P)
-	err1 := c.Find(bson.M{"Categoria": "botella"}).All(&botellas)
-	if err1 != nil {
-		fmt.Println(err1)
-	}
 	return botellas
 
 }
 
-//ExtraeCervezas -> Regresa unicamente las cervezas
+// ExtraeCervezas -> Regresa unicamente las cervezas
 func ExtraeCervezas() []Producto {
 	var cervezas []Producto
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	client, _ := db.ConectarMongoDB()
+	productoscol := productos(client)
+	filter := bson.M{"Categoria": "cerveza"}
+	opts := options.Find().SetSort(bson.M{"Nombre": 1})
+
+	cursor, err := productoscol.Find(context.TODO(), filter, opts)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err, "Error en Buscar Cervezas")
+	}
+	if err = cursor.All(context.TODO(), &cervezas); err != nil {
+		fmt.Println(err, "Error en Buscar Cervezas")
 	}
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_P)
-	err1 := c.Find(bson.M{"Categoria": "cerveza"}).All(&cervezas)
-	if err1 != nil {
-		fmt.Println(err1)
-	}
 	return cervezas
 
 }
 
-//ExtraeBotanas -> Regresa unicamente las botanas
+// ExtraeBotanas -> Regresa unicamente las botanas
 func ExtraeBotanas() []Producto {
 	var botanas []Producto
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	client, _ := db.ConectarMongoDB()
+	productoscol := productos(client)
+	filter := bson.M{"Categoria": "botana"}
+	opts := options.Find().SetSort(bson.M{"Nombre": 1})
+
+	cursor, err := productoscol.Find(context.TODO(), filter, opts)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err, "Error en Buscar Botanas")
+	}
+	if err = cursor.All(context.TODO(), &botanas); err != nil {
+		fmt.Println(err, "Error en Buscar Botanas")
 	}
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_P)
-	err1 := c.Find(bson.M{"Categoria": "botana"}).All(&botanas)
-	if err1 != nil {
-		fmt.Println(err1)
-	}
 	return botanas
 
 }
 
-//ExtraePromos -> Regresa unicamente las promociones
+// ExtraePromos -> Regresa unicamente las promociones
 func ExtraePromos() []Producto {
 	var promos []Producto
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
+	client, _ := db.ConectarMongoDB()
+	productoscol := productos(client)
+	filter := bson.M{"Categoria": "promo"}
+	opts := options.Find().SetSort(bson.M{"Nombre": 1})
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_P)
-	err1 := c.Find(bson.M{"Categoria": "promo"}).All(&promos)
-	if err1 != nil {
-		fmt.Println(err1)
+	cursor, err := productoscol.Find(context.TODO(), filter, opts)
+	if err != nil {
+		fmt.Println(err, "Error en Buscar Promos")
+	}
+	if err = cursor.All(context.TODO(), &promos); err != nil {
+		fmt.Println(err, "Error en Buscar Promos")
 	}
 	return promos
 
 }
 
-//ExtraeCancion -> Regresa unicamente las canciones
+// ExtraeCancion -> Regresa unicamente las canciones
 func ExtraeCancion() []Producto {
 	var canciones []Producto
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
+	client, _ := db.ConectarMongoDB()
+	productoscol := productos(client)
+	filter := bson.M{"Categoria": "cancion"}
+	opts := options.Find().SetSort(bson.M{"Nombre": 1})
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_P)
-	err1 := c.Find(bson.M{"Categoria": "cancion"}).All(&canciones)
-	if err1 != nil {
-		fmt.Println(err1)
+	cursor, err := productoscol.Find(context.TODO(), filter, opts)
+	if err != nil {
+		fmt.Println(err, "Error en Buscar Cancion")
+	}
+	if err = cursor.All(context.TODO(), &canciones); err != nil {
+		fmt.Println(err, "Error en Buscar Cancion")
 	}
 	return canciones
 
 }
 
-//ExtraeFichas -> Regresa unicamente las fichas
+// ExtraeFichas -> Regresa unicamente las fichas
 func ExtraeFichas() []Producto {
 	var fichas []Producto
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
+	client, _ := db.ConectarMongoDB()
+	productoscol := productos(client)
+	filter := bson.M{"Categoria": "ficha"}
+	opts := options.Find().SetSort(bson.M{"Nombre": 1})
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_P)
-	err1 := c.Find(bson.M{"Categoria": "ficha"}).All(&fichas)
-	if err1 != nil {
-		fmt.Println(err1)
+	cursor, err := productoscol.Find(context.TODO(), filter, opts)
+	if err != nil {
+		fmt.Println(err, "Error en Buscar Ficha")
+	}
+	if err = cursor.All(context.TODO(), &fichas); err != nil {
+		fmt.Println(err, "Error en Buscar Ficha")
 	}
 	return fichas
 
 }
 
-//ExtraeCigarros -> Regresa unicamente los cigarros
+// ExtraeCigarros -> Regresa unicamente los cigarros
 func ExtraeCigarros() []Producto {
 	var cigarros []Producto
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
+	client, _ := db.ConectarMongoDB()
+	productoscol := productos(client)
+	filter := bson.M{"Categoria": "cigarros"}
+	opts := options.Find().SetSort(bson.M{"Nombre": 1})
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_P)
-	err1 := c.Find(bson.M{"Categoria": "cigarros"}).All(&cigarros)
-	if err1 != nil {
-		fmt.Println(err1)
+	cursor, err := productoscol.Find(context.TODO(), filter, opts)
+	if err != nil {
+		fmt.Println(err, "Error en Buscar Ficha")
+	}
+	if err = cursor.All(context.TODO(), &cigarros); err != nil {
+		fmt.Println(err, "Error en Buscar Ficha")
 	}
 	return cigarros
 
 }
 
-//ExtraeCopas -> Regresa unicamente las copas
+// ExtraeCopas -> Regresa unicamente las copas
 func ExtraeCopas() []Producto {
 	var copas []Producto
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
+	client, _ := db.ConectarMongoDB()
+	productoscol := productos(client)
+	filter := bson.M{"Categoria": "copa"}
+	opts := options.Find().SetSort(bson.M{"Nombre": 1})
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_P)
-	err1 := c.Find(bson.M{"Categoria": "copa"}).All(&copas)
-	if err1 != nil {
-		fmt.Println(err1)
+	cursor, err := productoscol.Find(context.TODO(), filter, opts)
+	if err != nil {
+		fmt.Println(err, "Error en Buscar Ficha")
+	}
+	if err = cursor.All(context.TODO(), &copas); err != nil {
+		fmt.Println(err, "Error en Buscar Ficha")
 	}
 	return copas
 
@@ -286,77 +296,70 @@ func ExtraeCopas() []Producto {
 
 func ExtraerAlmacenes() []Almacen {
 	var almacenes []Almacen
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
+	client, _ := db.ConectarMongoDB()
+	almacenescol := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_AL)
+	opts := options.Find().SetSort(bson.M{"Nombre": 1})
+	filter := bson.M{}
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_AL)
-	err1 := c.Find(bson.M{}).All(&almacenes)
-	if err1 != nil {
-		fmt.Println(err1)
+	cursor, err := almacenescol.Find(context.TODO(), filter, opts)
+	if err != nil {
+		fmt.Println(err, "Error en Buscar Almacen")
+	}
+	if err = cursor.All(context.TODO(), &almacenes); err != nil {
+		fmt.Println(err, "Error en Buscar Almacen")
 	}
 	return almacenes
 
 }
 
-//ExtraerAlmacen -> Extrae el almacen unico a editar
-func ExtraerAlmacen(info string) Almacen {
+// ExtraerAlmacen -> Extrae el almacen unico a editar
+func ExtraerAlmacen(info string) *Almacen {
 
-	idobj := bson.ObjectIdHex(info)
-	var almacen Almacen
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	idobj, err := primitive.ObjectIDFromHex(info)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err, "Error convirtiendo id de almacen a objectID")
 	}
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_AL)
-	err1 := c.FindId(idobj).One(&almacen)
-	if err1 != nil {
-		fmt.Println(err1)
+	var almacen Almacen
+	client, _ := db.ConectarMongoDB()
+
+	almacenescol := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_AL)
+	err = almacenescol.FindOne(context.TODO(), bson.M{"_id": idobj}).Decode(&almacen)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Id de Almacen no encontrado")
+		}
 	}
-	return almacen
+
+	return &almacen
 
 }
 
-//ExtraeBodegaID -> Devuelve el ID para el almacen de "Bodega" en MongoDB
+// ExtraeBodegaID -> Devuelve el ID para el almacen de "Bodega" en MongoDB
 func ExtraeBodegaID() string {
 
 	var almacen Almacen
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	var err error
+	client, _ := db.ConectarMongoDB()
+	almacenescol := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_AL)
+	opts := options.FindOne().SetSort(bson.M{"Mesa": 1})
+	err = almacenescol.FindOne(context.TODO(), bson.M{"Nombre": "Bodega"}, opts).Decode(&almacen)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_AL)
-	err1 := c.Find(bson.M{"Nombre": "Bodega"}).Select(bson.M{"_id": 1}).One(&almacen)
-	if err1 != nil {
-		fmt.Println(err1)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Id de Bodega no encontrado")
+		}
 	}
 	return almacen.ID.Hex()
 }
 
-//AgregarAAlmacen -> Verifica la existencia del producto en el almacen y si no existe lo agrega
+// AgregarAAlmacen -> Verifica la existencia del producto en el almacen y si no existe lo agrega
 func AgregarAAlmacen(producto, almacenid string) bool {
-
-	//Saber si ya existe en el almacen
-	idobj := bson.ObjectIdHex(almacenid)
-	idobjprod := bson.ObjectIdHex(producto)
-	var almacen Almacen
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	idobjprod, err := primitive.ObjectIDFromHex(producto)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err, "Error convirtiendo id de producto a objectID")
 	}
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_AL)
-	err1 := c.FindId(idobj).One(&almacen)
-	if err1 != nil {
-		fmt.Println(err1)
-	}
+	almacen := ExtraerAlmacen(almacenid)
 
 	encontrado := false
 	for _, v := range almacen.Productos {
@@ -371,33 +374,33 @@ func AgregarAAlmacen(producto, almacenid string) bool {
 
 		almacen.Productos = append(almacen.Productos, idobjprod)
 		almacen.Existencia = append(almacen.Existencia, 0)
-		err2 := c.UpdateId(almacen.ID, almacen)
-		if err1 != nil {
-			fmt.Println(err2)
+
+		client, _ := db.ConectarMongoDB()
+		almacenescol := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_AL)
+
+		fmt.Println(almacen)
+
+		filter := bson.M{"_id": almacen.ID}
+		update := bson.M{"$set": bson.M{"Productos": almacen.Productos, "Existencia": almacen.Existencia}}
+		result, err := almacenescol.UpdateOne(context.TODO(), filter, update)
+		if err != nil {
+			if errors.Is(err, mongo.ErrNoDocuments) {
+				fmt.Println(err, "Id de Almacen no encontrado")
+			}
 		}
+		fmt.Println(result)
 		return true
 	}
 
 }
 
-//EliminarDeAlmacen -> Elimina el producto del almacen seleccionado
+// EliminarDeAlmacen -> Elimina el producto del almacen seleccionado
 func EliminarDeAlmacen(producto, almacenid string) bool {
-	//Saber si ya existe en el almacen
-	idobj := bson.ObjectIdHex(almacenid)
-	idobjprod := bson.ObjectIdHex(producto)
-	var almacen Almacen
-
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	idobjprod, err := primitive.ObjectIDFromHex(producto)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err, "Error convirtiendo id de producto a objectID")
 	}
-
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_AL)
-	err1 := c.FindId(idobj).One(&almacen)
-	if err1 != nil {
-		fmt.Println(err1)
-	}
+	almacen := ExtraerAlmacen(almacenid)
 
 	encontrado := false
 
@@ -416,15 +419,23 @@ func EliminarDeAlmacen(producto, almacenid string) bool {
 			return false
 		} else {
 
-			almacen.Existencia = RemoveIndex(almacen.Existencia, contador)
+			almacen.Existencia = RemoveInts(almacen.Existencia, contador)
+			almacen.Productos = RemovePrimitives(almacen.Productos, contador)
 
-			err3 := c.UpdateId(almacen.ID, almacen)
-			if err3 != nil {
-				fmt.Println(err3)
+			client, _ := db.ConectarMongoDB()
+			almacenescol := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_AL)
+
+			filter := bson.M{"_id": almacen.ID}
+			opts2 := options.Update().SetUpsert(false)
+			result, err := almacenescol.UpdateOne(context.TODO(), filter, almacen, opts2)
+			if err != nil {
+				if errors.Is(err, mongo.ErrNoDocuments) {
+					fmt.Println(err, "Id de Almacen no encontrado")
+				}
 			}
-			err2 := c.Update(bson.M{"_id": almacen.ID}, bson.M{"$pull": bson.M{"Productos": idobjprod}})
-			if err2 != nil {
-				fmt.Println(err2)
+
+			if result.MatchedCount != 0 {
+				fmt.Println("Producto Agregado al Almacen")
 			}
 
 			return true
@@ -435,133 +446,133 @@ func EliminarDeAlmacen(producto, almacenid string) bool {
 	}
 }
 
-//RemoveIndex -> Remueve el indice seleccionado del arreglo, haciendo un slice de 2 y lo vuelve a unir Version para Enteros
-func RemoveIndex(s []int, index int) []int {
+// RemoveInts -> Remueve el indice seleccionado del arreglo, haciendo un slice de 2 y lo vuelve a unir Version para Enteros
+func RemoveInts(s []int, index int) []int {
 	return append(s[:index], s[index+1:]...)
 }
 
-//ExtraeRefrigeradorID -> Devuelve el ID para el almacen de "Refrigerador" en MongoDB
+// RemovePrimitives -> Remueve el indice seleccionado del arreglo, haciendo un slice de 2 y lo vuelve a unir Version para Enteros
+func RemovePrimitives(s []primitive.ObjectID, index int) []primitive.ObjectID {
+	return append(s[:index], s[index+1:]...)
+}
+
+// ExtraeRefrigeradorID -> Devuelve el ID para el almacen de "Refrigerador" en MongoDB
 func ExtraeRefrigeradorID() string {
 
 	var almacen Almacen
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
+	var err error
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_AL)
-	err1 := c.Find(bson.M{"Nombre": "Refrigerador"}).Select(bson.M{"_id": 1}).One(&almacen)
-	if err1 != nil {
-		fmt.Println(err1)
+	client, _ := db.ConectarMongoDB()
+	// Extrae el Almacen
+	almacenes := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_AL)
+	opts := options.FindOne().SetSort(bson.M{"Nombre": 1})
+	filter := bson.M{"Nombre": "Refrigerador"}
+	err = almacenes.FindOne(context.TODO(), filter, opts).Decode(&almacen)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Almacen no encontrado")
+		}
 	}
 	return almacen.ID.Hex()
 }
 
-//ExtraeNombreProducto -> Regresa el nombre del producto
-func ExtraeNombreProducto(id bson.ObjectId) string {
-
-	var producto Producto
-
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_P)
-	err1 := c.FindId(id).One(&producto)
-	if err1 != nil {
-		fmt.Println(err1)
-	}
+// ExtraeNombreProducto -> Regresa el nombre del producto
+func ExtraeNombreProducto(id primitive.ObjectID) string {
+	producto := ExtraeProducto(id.Hex())
 	return producto.Nombre
-
 }
 
-//GuardaProductoEditado -> Edita el producto seleccionado
+// GuardaProductoEditado -> Edita el producto seleccionado
 func GuardaProductoEditado(producto Producto) {
 
 	var productoold Producto
+	var err error
 
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	client, _ := db.ConectarMongoDB()
+	productoscol := productos(client)
+	filter := bson.M{"_id": producto.ID}
+	err = productoscol.FindOne(context.TODO(), filter).Decode(&productoold)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_P)
-	err1 := c.FindId(producto.ID).One(&productoold)
-	if err1 != nil {
-		fmt.Println("err1", err1)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err)
+		}
 	}
 
 	producto.Imagen = productoold.Imagen
 
-	err2 := c.UpdateId(productoold.ID, producto)
-	if err2 != nil {
-		fmt.Println("err2", err2)
+	result, err := productoscol.UpdateOne(context.TODO(), filter, producto)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Id de Producto no encontrado")
+		}
+	}
+
+	if result.MatchedCount != 0 {
+		fmt.Println("Producto actualizado: ", producto.Nombre)
 	}
 
 }
 
-//ExtraeProducto -> Devuelve un producto mediante su id
+// ExtraeProducto -> Devuelve un producto mediante su id
 func ExtraeProducto(idProducto string) Producto {
 
-	idobjprod := bson.ObjectIdHex(idProducto)
-
-	var producto Producto
-
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	idobjprod, err := primitive.ObjectIDFromHex(idProducto)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err, "Error convirtiendo id de producto a objectID")
 	}
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_P)
-	err1 := c.FindId(idobjprod).One(&producto)
-	if err1 != nil {
-		fmt.Println(err1)
+	var producto Producto
+	client, _ := db.ConectarMongoDB()
+	productoscol := productos(client)
+	err = productoscol.FindOne(context.TODO(), bson.M{"_id": idobjprod}).Decode(&producto)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Id de Producto no encontrado")
+		}
 	}
 	return producto
 }
 
-//ExtraeProductosSinPromo -> Devuelve los producto mediante su id
+// ExtraeProductosSinPromo -> Devuelve los producto mediante su id
 func ExtraeProductosSinPromo() []Producto {
-	var productos []Producto
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	var productosr []Producto
+	client, _ := db.ConectarMongoDB()
+	productoscol := productos(client)
+	filter := bson.M{"Categoria": bson.M{"$ne": "promo"}}
+	opts := options.Find().SetSort(bson.M{"Nombre": 1})
+	cursor, err := productoscol.Find(context.TODO(), filter, opts)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err, "Error en Buscar Cancion")
 	}
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_P)
-	err1 := c.Find(bson.M{"Categoria": bson.M{"$ne": "promo"}}).Sort("Nombre").All(&productos)
-	if err1 != nil {
-		fmt.Println(err1)
+	if err = cursor.All(context.TODO(), &productosr); err != nil {
+		fmt.Println(err, "Error en Buscar Cancion")
 	}
-	return productos
+
+	return productosr
 }
 
-//EliminarProducto -> Elimina un producto segun su id
+// EliminarProducto -> Elimina un producto segun su id
 func EliminarProducto(idProducto string) bool {
 
-	idobjprod := bson.ObjectIdHex(idProducto)
+	idobjprod, err := primitive.ObjectIDFromHex(idProducto)
+	if err != nil {
+		fmt.Println(err, "Error convirtiendo id de producto a objectID")
+	}
 
 	var bodega Almacen
 	var refrigerador Almacen
 
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	client, _ := db.ConectarMongoDB()
+
+	almacenescol := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_AL)
+	productoscol := productos(client)
+
+	//Existe en Refrigerador con mas de 0
+	err = almacenescol.FindOne(context.TODO(), bson.M{"Nombre": "Bodega"}).Decode(&bodega)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	//Existe en Bodega con mas de 0
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_AL)
-	d := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_P)
-
-	err1 := c.Find(bson.M{"Nombre": "Bodega"}).One(&bodega)
-	if err1 != nil {
-		fmt.Println(err1)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Id de Almacen Bodega no encontrado")
+		}
 	}
 
 	var encontradoenbodega bool
@@ -575,9 +586,11 @@ func EliminarProducto(idProducto string) bool {
 	}
 
 	//Existe en Refrigerador con mas de 0
-	err2 := c.Find(bson.M{"Nombre": "Refrigerador"}).One(&refrigerador)
-	if err2 != nil {
-		fmt.Println(err2)
+	err = almacenescol.FindOne(context.TODO(), bson.M{"Nombre": "Refrigerador"}).Decode(&refrigerador)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Id de Almacen Refrigerador no encontrado")
+		}
 	}
 
 	var encontradoenrefrigerador bool
@@ -596,10 +609,11 @@ func EliminarProducto(idProducto string) bool {
 
 	if encontradoenrefrigerador == false && encontradoenbodega == false {
 
-		err3 := d.RemoveId(idobjprod)
-		if err3 != nil {
-			fmt.Println(err3)
+		res, err := productoscol.DeleteOne(context.TODO(), bson.M{"_id": idobjprod})
+		if err != nil {
+			log.Fatal(err)
 		}
+		fmt.Printf("Producto %v eliminado de bodega y refrigerador\n", res.DeletedCount)
 
 		return true
 	}
@@ -607,67 +621,60 @@ func EliminarProducto(idProducto string) bool {
 	return false
 }
 
-//ActualizarExistenciasEnAlmacen -> Actualiza las existencias del almacen, segun los productos agregados al almacen desde un inicio
+// ActualizarExistenciasEnAlmacen -> Actualiza las existencias del almacen, segun los productos agregados al almacen desde un inicio
 func ActualizarExistenciasEnAlmacen(almacen string, productos, existencias []string) bool {
-
-	almacenid := bson.ObjectIdHex(almacen)
 	var existenciasint []int
 
-	var almacenFs Almacen
-
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("Alamcen Inicial ", almacenFs)
+	var almacenFs *Almacen
+	almacenFs = ExtraerAlmacen(almacen)
+	client, _ := db.ConectarMongoDB()
+	almacenescol := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_AL)
 
 	for _, vv := range existencias {
 		i, _ := strconv.Atoi(vv)
 		existenciasint = append(existenciasint, i)
 	}
 
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_AL)
-	err1 := c.FindId(almacenid).One(&almacenFs)
-	if err1 != nil {
-		fmt.Println(err1)
-	}
-
 	for k, v := range almacenFs.Productos {
-		if v == bson.ObjectIdHex(productos[k]) {
+		primt, _ := primitive.ObjectIDFromHex(productos[k])
+		if v == primt {
 			almacenFs.Existencia[k] = existenciasint[k]
 		}
 	}
 
-	err2 := c.UpdateId(almacenFs.ID, almacenFs)
-	if err2 != nil {
-		fmt.Println(err2)
+	filter := bson.M{"_id": almacenFs.ID}
+	update := bson.M{"$set": bson.M{"Productos": almacenFs.Productos, "Existencia": almacenFs.Existencia}}
+	result, err := almacenescol.UpdateOne(context.TODO(), filter, update)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Id de Almacen no encontrado")
+		}
 	}
 
-	fmt.Println("Alamcen Actualizado ", almacenFs)
+	if result.MatchedCount != 0 {
+		fmt.Println("Almacen Actualizado")
+	}
 
 	return true
 
 }
 
-//ExtraeExistencias -> Extrae la Existencia del almacen seleccionado (Refrigerador)
-func ExtraeExistencias(id bson.ObjectId) int {
+// ExtraeExistencias -> Extrae la Existencia del almacen seleccionado (Refrigerador)
+func ExtraeExistencias(id primitive.ObjectID) int {
 
 	var existencia int
 
 	var almacenFs Almacen
+	var err error
 
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	client, _ := db.ConectarMongoDB()
+	almacenescol := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_AL)
+	filter := bson.M{"Nombre": "Refrigerador"}
+	err = almacenescol.FindOne(context.TODO(), filter).Decode(&almacenFs)
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_AL)
-	err1 := c.Find(bson.M{"Nombre": "Refrigerador"}).One(&almacenFs)
-	if err1 != nil {
-		fmt.Println(err1)
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Id de Refrigerador no encontrado")
+		}
 	}
 
 	//Buscar el producto en el almacen

@@ -2,12 +2,13 @@ package indexcontroller
 
 import (
 	"fmt"
+
 	"github.com/kataras/iris/v12"
 	sessioncontroller "github.com/vadgun/Bar/Controladores/SessionController"
 	indexmodel "github.com/vadgun/Bar/Modelos/IndexModel"
 )
 
-//Index -> Regresa la pagina de inicio
+// Index -> Regresa la pagina de inicio
 func Index(ctx iris.Context) {
 	var usuario indexmodel.MongoUser
 	var autorizado bool
@@ -41,6 +42,7 @@ func Index(ctx iris.Context) {
 		// ctx.ViewData("Totalorden", totalorden)
 
 		if err := ctx.View("Index.html"); err != nil {
+			fmt.Println("Entramos aqui?")
 			ctx.Application().Logger().Infof(err.Error())
 		}
 	} else {

@@ -9,15 +9,15 @@ import (
 	"github.com/jung-kurt/gofpdf"
 	"github.com/kataras/iris/v12"
 	"github.com/leekchan/accounting"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	sessioncontroller "github.com/vadgun/Bar/Controladores/SessionController"
 	indexmodel "github.com/vadgun/Bar/Modelos/IndexModel"
 	inventariomodel "github.com/vadgun/Bar/Modelos/InventarioModel"
 	ventamodel "github.com/vadgun/Bar/Modelos/VentaModel"
-	"gopkg.in/mgo.v2/bson"
 )
 
-//Venta -> Devuelve la vista de la Venta
+// Venta -> Devuelve la vista de la Venta
 func Venta(ctx iris.Context) {
 	userOn := indexmodel.GetUserOn(sessioncontroller.Sess.Start(ctx).GetString("UserID"))
 	ctx.ViewData("Usuario", userOn)
@@ -33,7 +33,7 @@ func Venta(ctx iris.Context) {
 	}
 }
 
-//VentaDiaria -> Devuelve la vista de la Venta Diaria
+// VentaDiaria -> Devuelve la vista de la Venta Diaria
 func VentaDiaria(ctx iris.Context) {
 	userOn := indexmodel.GetUserOn(sessioncontroller.Sess.Start(ctx).GetString("UserID"))
 	ctx.ViewData("Usuario", userOn)
@@ -48,7 +48,7 @@ func VentaDiaria(ctx iris.Context) {
 	}
 }
 
-//ConfigurarMesas -> Configura la cantidad de mesas para abrir la venta del dia
+// ConfigurarMesas -> Configura la cantidad de mesas para abrir la venta del dia
 func ConfigurarMesas(ctx iris.Context) {
 
 	var htmlcode string
@@ -68,13 +68,11 @@ func ConfigurarMesas(ctx iris.Context) {
 
 }
 
-//VerificarVenta -> Toma en cuenta la fecha para devolver las mesas diarias correspondientes a los dias, si no existe una cuenta diaria la crea por fecha y crea la mesa diara para la venta
+// VerificarVenta -> Toma en cuenta la fecha para devolver las mesas diarias correspondientes a los dias, si no existe una cuenta diaria la crea por fecha y crea la mesa diara para la venta
 func VerificarVenta(ctx iris.Context) {
 
 	fechaVenta := ctx.PostValue("data")
 	ac := accounting.Accounting{Symbol: "$", Precision: 2}
-
-	fmt.Println(fechaVenta)
 
 	MesasDisponibles := ventamodel.ExtraeMesas()
 
@@ -99,7 +97,7 @@ func VerificarVenta(ctx iris.Context) {
 		if userOn.Admin {
 			htmlcode += fmt.Sprintf(`
 		<div class="centrado">
-			<a class="btn btn-info btn-large padd" href="Javascript:AbrirVentaDelDia('%v');" role="button">Iniciar venta para %v </a>&nbsp;
+			<a id="abrirventadiariabutton" class="btn btn-info btn-large padd" href="Javascript:AbrirVentaDelDia('%v');" role="button">Iniciar venta para %v </a>&nbsp;
 		</div>
 
 		<div class="centrado">
@@ -160,28 +158,19 @@ func VerificarVenta(ctx iris.Context) {
 
 }
 
-//AbrirVentaDiaria -> Algoritmo que crea la venta del dia y la regresa al main contanier donde fue hecha la peticion
+// AbrirVentaDiaria -> Algoritmo que crea la venta del dia y la regresa al main contanier donde fue hecha la peticion
 func AbrirVentaDiaria(ctx iris.Context) {
 
 	fechaVenta := ctx.PostValue("data")
-
 	var htmlcode string
-	// var mesasdeldia []ventamodel.Mesa
-
 	MesasDisponibles := ventamodel.ExtraeMesas()
-
-	fmt.Println(fechaVenta, " -- ", MesasDisponibles)
-
 	htmlcode += fmt.Sprintf(``)
-
 	layout := "2006-01-02"
 	location, _ := time.LoadLocation("America/Mexico_City")
-
 	t, _ := time.ParseInLocation(layout, fechaVenta, location)
 
 	//Crear las mesas diarias de acuerdo con la numeracion de mesas a abrir, por el momento solo tienen que llevar numero de mesa y status.
-
-	var productos []bson.ObjectId
+	var productos []primitive.ObjectID
 	var cantidades []int
 
 	for i := 1; i <= MesasDisponibles; i++ {
@@ -203,9 +192,17 @@ func AbrirVentaDiaria(ctx iris.Context) {
 	htmlcode += fmt.Sprintf(`
 	<div class="container">
     	<div class="centrado">
-        	<h1 class="display-4">Se han abierto %v Mesas - Recarga la fecha</h1>
+        	<h1 class="display-4">Se han abierto %v Mesas para %v</h1>
     	</div>
-	</div>`, MesasDisponibles)
+	</div>
+	<script>
+		alertify
+  .alert("Venta diaria creada", function(){
+    alertify.message('OK');
+  });
+		VerificaMesas('%v')
+	</script>
+	`, MesasDisponibles, fechaVenta, fechaVenta)
 
 	ctx.HTML(htmlcode)
 
@@ -225,7 +222,7 @@ func AbrirVentaDiaria(ctx iris.Context) {
 	//Cada mesa alimentara la venta diaria la cual alimentara la columna de utilidad al final del dia.
 }
 
-//EnviarProductoABodega -> Envia el producto a Bodega para dar de alta su existencia
+// EnviarProductoABodega -> Envia el producto a Bodega para dar de alta su existencia
 func EnviarProductoABodega(ctx iris.Context) {
 
 	var htmlcode string
@@ -234,9 +231,6 @@ func EnviarProductoABodega(ctx iris.Context) {
 	arreglo := strings.Split(prodYAlmacen, ":")
 	producto := arreglo[0]
 	almacen := arreglo[1]
-
-	//Hacer una funcion en el modelo que saque el producto de una coleccion y lo agregue al array correspondiente,
-	//solo se puede agregar una vez, asi q verificar el id q no se repita
 
 	if inventariomodel.AgregarAAlmacen(producto, almacen) {
 
@@ -260,7 +254,7 @@ func EnviarProductoABodega(ctx iris.Context) {
 
 }
 
-//EnviarProductoARefrigerador -> Envia el producto a Refrigerador para dar de alta su existencia
+// EnviarProductoARefrigerador -> Envia el producto a Refrigerador para dar de alta su existencia
 func EnviarProductoARefrigerador(ctx iris.Context) {
 
 	var htmlcode string
@@ -295,7 +289,7 @@ func EnviarProductoARefrigerador(ctx iris.Context) {
 
 }
 
-//EliminarProductoDeBodega -> Eliminar de Bodega
+// EliminarProductoDeBodega -> Eliminar de Bodega
 func EliminarProductoDeBodega(ctx iris.Context) {
 	var htmlcode string
 
@@ -328,7 +322,7 @@ func EliminarProductoDeBodega(ctx iris.Context) {
 	ctx.HTML(htmlcode)
 }
 
-//EliminarProductoDeRefrigerador -> Eliminar de Refrigerador
+// EliminarProductoDeRefrigerador -> Eliminar de Refrigerador
 func EliminarProductoDeRefrigerador(ctx iris.Context) {
 	var htmlcode string
 
@@ -361,18 +355,16 @@ func EliminarProductoDeRefrigerador(ctx iris.Context) {
 	ctx.HTML(htmlcode)
 }
 
-//CerrarVentaDeMesa -> Cierra la venta diaria de una mesa y devuelve su estatus a false
+// CerrarVentaDeMesa -> Cierra la venta diaria de una mesa y devuelve su estatus a false
 func CerrarVentaDeMesa(ctx iris.Context) {
 	idmesa := ctx.PostValue("data")
 	cadenas := strings.Split(idmesa, ":")
-	var mesa ventamodel.Mesa
-	mesa = ventamodel.ExtraeMesa(cadenas[0])
-	fmt.Println(mesa)
+	mesa := ventamodel.ExtraeMesa(cadenas[0])
 	ventamodel.CierraMesa(mesa)
 	ctx.HTML("Cerrando Mesas")
 }
 
-//AgregarProductosHTML -> Regresa el codigo HTML aplicando condiciones, for y switch
+// AgregarProductosHTML -> Regresa el codigo HTML aplicando condiciones, for y switch
 func AgregarProductosHTML(productos []inventariomodel.Producto) string {
 	var htmlcode string
 
@@ -489,7 +481,7 @@ func AgregarProductosHTML(productos []inventariomodel.Producto) string {
 	return htmlcode
 }
 
-//ProductoDeModal -> Devuelve los productos selecionados a la ventana del modal
+// ProductoDeModal -> Devuelve los productos selecionados a la ventana del modal
 func ProductoDeModal(ctx iris.Context) {
 
 	categoriaproductosAModal := ctx.PostValue("data")
@@ -575,7 +567,7 @@ func ProductoDeModal(ctx iris.Context) {
 		if lencigarros == 0 {
 			htmlcode += fmt.Sprintf(`<div class="container">
 			<div class="centrado">
-				<h1 class="display-4">No hay cigarros dadas de alta</h1>
+				<h1 class="display-4">No hay cigarros dados de alta</h1>
 			</div>
 		</div>`)
 		} else {
@@ -844,14 +836,15 @@ func ProductoDeModal(ctx iris.Context) {
 
 }
 
-//ProductosAgregadosEnModalDesdePromo -> Evalua la mesa seleecionada y regresa al modal la cantidad de productos agregados
+// ProductosAgregadosEnModalDesdePromo -> Evalua la mesa seleecionada y regresa al modal la cantidad de productos agregados
 func ProductosAgregadosEnModalDesdePromo(ctx iris.Context) {
 
 	idss := ctx.PostValue("data")
 	cadenas := strings.Split(idss, ":")
 	ac := accounting.Accounting{Symbol: "$", Precision: 2}
 	mesa := ventamodel.ExtraeMesa(cadenas[0])
-	producto := bson.ObjectIdHex(cadenas[1])
+	primt, _ := primitive.ObjectIDFromHex(cadenas[1])
+	producto := primt
 	cantidad, _ := strconv.Atoi(cadenas[2])
 
 	//tenemos la mesa , la promo y la cantidad la cual sera multiplicada por 1 por la cantidad de la promo si tiene 10 familiares seria 1*10 y eso se descontara del refrigerador
@@ -865,7 +858,7 @@ func ProductosAgregadosEnModalDesdePromo(ctx iris.Context) {
 		}
 	}
 
-	if encontrado == false {
+	if !encontrado {
 		mesa.Productos = append(mesa.Productos, producto)
 		mesa.Cantidades = append(mesa.Cantidades, cantidad)
 	} else {
@@ -923,7 +916,7 @@ func ProductosAgregadosEnModalDesdePromo(ctx iris.Context) {
 
 }
 
-//ProductosVendidos -> Productos vendidos al momento de abrir el modal
+// ProductosVendidos -> Productos vendidos al momento de abrir el modal
 func ProductosVendidos(ctx iris.Context) {
 
 	idmesa := ctx.PostValue("data")
@@ -992,14 +985,16 @@ func ProductosVendidos(ctx iris.Context) {
 
 }
 
-//ProductosAgregadosEnModal -> Evalua la Mesa seleccionada y regresa al modal la cantidad de productos agregados
+// ProductosAgregadosEnModal -> Evalua la Mesa seleccionada y regresa al modal la cantidad de productos agregados
 func ProductosAgregadosEnModal(ctx iris.Context) {
 
 	idss := ctx.PostValue("data")
 	cadenas := strings.Split(idss, ":")
 	ac := accounting.Accounting{Symbol: "$", Precision: 2}
 	mesa := ventamodel.ExtraeMesa(cadenas[0])
-	producto := bson.ObjectIdHex(cadenas[1])
+	primt, _ := primitive.ObjectIDFromHex(cadenas[1])
+	producto := primt
+
 	cantidad, _ := strconv.Atoi(cadenas[2])
 	var htmlcode string
 	encontrado := false
@@ -1047,7 +1042,6 @@ func ProductosAgregadosEnModal(ctx iris.Context) {
 		</tr>`, k+1, productoenMesa.Nombre, ac.FormatMoney(productoenMesa.PrecioPub), mesa.Cantidades[k], ac.FormatMoney((productoenMesa.PrecioPub * float64(mesa.Cantidades[k]))))
 		totalsuma += (productoenMesa.PrecioPub * float64(mesa.Cantidades[k]))
 	}
-
 	htmlcode += fmt.Sprintf(`
 		<tr>
 			<td colspan="4"></td>
@@ -1057,9 +1051,7 @@ func ProductosAgregadosEnModal(ctx iris.Context) {
 	  </table>`, ac.FormatMoney(totalsuma))
 
 	ventamodel.ActualizarMesaDiaria(mesa)
-
 	ventamodel.ActuailzaAlmacenDesdeModal(producto, cantidad)
-
 	htmlcode += fmt.Sprintf(`
 	<div class="container centrado">
 	<a class="btn btn-warning btn-large padd" href="Javascript:Traspasos('%v');" role="button">Traspasos</a>&nbsp;
@@ -1070,16 +1062,15 @@ func ProductosAgregadosEnModal(ctx iris.Context) {
 
 }
 
-//FechaHTML Devuele la fecha formateada para html
+// FechaHTML Devuele la fecha formateada para html
 func FechaHTML(fecha time.Time) string {
-	var fechahtml string
-	fechahtml = fecha.Format("2006-01-02")
+	fechahtml := fecha.Format("2006-01-02")
 	// fechahtml = strings.Replace(fechahtml, "-", "/", -1)
 	return fechahtml
 
 }
 
-//ImprimirVentaDiariaEnPDF2 -> Imprime el dia seleccionado en pdf listo para su impresion
+// ImprimirVentaDiariaEnPDF2 -> Imprime el dia seleccionado en pdf listo para su impresion
 func ImprimirVentaDiariaEnPDF2(ctx iris.Context) {
 
 	var ventadiaria inventariomodel.VentaDiaria
@@ -1097,9 +1088,7 @@ func ImprimirVentaDiariaEnPDF2(ctx iris.Context) {
 
 	var htmlcode string
 
-	var horafecha time.Time
-
-	horafecha = time.Now()
+	horafecha := time.Now()
 	dia := horafecha.Day()
 	mess := horafecha.Month().String()
 	mes := MesEspanol(mess)
@@ -1226,7 +1215,7 @@ func ImprimirVentaDiariaEnPDF2(ctx iris.Context) {
 
 }
 
-//VaciarColeccion -> Elimina Colecciones de MongoDB
+// VaciarColeccion -> Elimina Colecciones de MongoDB
 func VaciarColeccion(ctx iris.Context) {
 
 	coleccion := ctx.PostValue("data")
@@ -1251,7 +1240,7 @@ func VaciarColeccion(ctx iris.Context) {
 
 }
 
-//ImprimirVentaDiaria -> Devuelve la vista de la Venta Diaria
+// ImprimirVentaDiaria -> Devuelve la vista de la Venta Diaria
 func ImprimirVentaDiaria(ctx iris.Context) {
 	userOn := indexmodel.GetUserOn(sessioncontroller.Sess.Start(ctx).GetString("UserID"))
 	ctx.ViewData("Usuario", userOn)
@@ -1266,7 +1255,7 @@ func ImprimirVentaDiaria(ctx iris.Context) {
 	}
 }
 
-//ClasificaVenta -> Devuelve la clasifiacion de la venta diaria asi como los totales vendidos y la diferencia en precios
+// ClasificaVenta -> Devuelve la clasifiacion de la venta diaria asi como los totales vendidos y la diferencia en precios
 func ClasificaVenta(ctx iris.Context) {
 
 	fecha := ctx.PostValue("data")
@@ -1284,6 +1273,17 @@ func ClasificaVenta(ctx iris.Context) {
 	//Saber la venta del dia con una tabla
 
 	var ventadiaria inventariomodel.VentaDiaria
+
+	if len(mesasdiarias) == 0 {
+		htmlcode += fmt.Sprintf(`<div class="container">
+			<div class="centrado">
+				<br>
+				<h1 class="display-4">No se tiene ningun registro de %v</h1>
+			</div>
+		</div>`, t.Format(layout))
+		ctx.HTML(htmlcode)
+		return
+	}
 
 	htmlcode += fmt.Sprintf(`
 		<table class="table table-hover" style="margin: auto; width: 85%s !important; font-size:14px; text-align: center;">
@@ -1383,7 +1383,7 @@ func ClasificaVenta(ctx iris.Context) {
 
 }
 
-//MesEspanol Regresa el mes en español.
+// MesEspanol Regresa el mes en español.
 func MesEspanol(mes string) string {
 	var mess string
 	switch mes {

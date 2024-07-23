@@ -7,6 +7,7 @@ import (
 	inventariocontroller "github.com/vadgun/Bar/Controladores/InventarioController"
 	logincontroller "github.com/vadgun/Bar/Controladores/LoginController"
 	ventacontroller "github.com/vadgun/Bar/Controladores/VentaController"
+	websocketcontroller "github.com/vadgun/Bar/Controladores/Websocketcontroller"
 )
 
 func main() {
@@ -76,6 +77,11 @@ func main() {
 	//Cambiar Fondo de pantalla y Recordarlo
 	app.Post("/ultimofondousado", administracioncontroller.AdministracionFondo)
 	app.Post("/cambiarfondo", administracioncontroller.AdministracionFondoCambiar)
+
+	// WebSocket
+	app.Get("/ws", websocketcontroller.WebsocketHandler)
+	go websocketcontroller.HandleMessages()
+	go websocketcontroller.MongoSupervisor()
 
 	app.Run(iris.Addr(":8080"))
 }

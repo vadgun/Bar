@@ -1,53 +1,54 @@
 package indexmodel
 
 import (
+	"context"
+	"errors"
 	"fmt"
-	"log"
 
 	conexiones "github.com/vadgun/Bar/Conexiones"
-	mgo "gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
+	db "github.com/vadgun/Bar/Modelos/Db"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-//VerificarUsuario Autentifica al usuario en la base de datos
+// VerificarUsuario Autentifica al usuario en la base de datos
 func VerificarUsuario(usuario MongoUser) (bool, MongoUser) {
 	var encontrado bool
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_U)
-	err1 := c.Find(bson.M{"Usuario": usuario.Usuario, "Key": usuario.Key}).One(&usuario)
-	if err1 != nil {
-		fmt.Println(err1)
-	}
+	var err error
 
-	if usuario.Nombre == "" {
-		encontrado = false
-	} else {
-		encontrado = true
+	client, _ := db.ConectarMongoDB()
+	usuarios := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_U)
+
+	opts := options.FindOne().SetSort(bson.M{"Nombre": 1})
+	err = usuarios.FindOne(context.TODO(), bson.M{"Usuario": usuario.Usuario, "Key": usuario.Key}, opts).Decode(&usuario)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Usuario no encontrado")
+		}
 	}
+	encontrado = usuario.Nombre != ""
 
 	return encontrado, usuario
 }
 
-//GetUserOn Se extrae el usuario logeado
+// GetUserOn Se extrae el usuario logeado
 func GetUserOn(user string) MongoUser {
 
 	var usuarioOn MongoUser
-	usrobjid := bson.ObjectIdHex(user)
-
-	session, err := mgo.Dial(conexiones.MONGO_SERVER)
-	defer session.Close()
+	usrobjid, err := primitive.ObjectIDFromHex(user)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
-	c := session.DB(conexiones.MONGO_DB).C(conexiones.MONGO_DB_U)
-	err1 := c.FindId(usrobjid).One(&usuarioOn)
-	if err1 != nil {
-		fmt.Println(err1)
+	client, _ := db.ConectarMongoDB()
+	usuarios := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_U)
+	opts := options.FindOne().SetSort(bson.M{"Nombre": 1})
+	err = usuarios.FindOne(context.TODO(), bson.M{"_id": usrobjid}, opts).Decode(&usuarioOn)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			fmt.Println(err, "Id no encontrada")
+		}
 	}
-
 	return usuarioOn
 }

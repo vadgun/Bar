@@ -12,10 +12,10 @@ import (
 	sessioncontroller "github.com/vadgun/Bar/Controladores/SessionController"
 	indexmodel "github.com/vadgun/Bar/Modelos/IndexModel"
 	inventariomodel "github.com/vadgun/Bar/Modelos/InventarioModel"
-	"gopkg.in/mgo.v2/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-//Inventario -> Devuelve la vista del Inventario
+// Inventario -> Devuelve la vista del Inventario
 func Inventario(ctx iris.Context) {
 	fmt.Println("Prueba de invetario")
 	userOn := indexmodel.GetUserOn(sessioncontroller.Sess.Start(ctx).GetString("UserID"))
@@ -25,7 +25,7 @@ func Inventario(ctx iris.Context) {
 	}
 }
 
-//Altaform -> Regresa la peticion del formulario de alta de productos
+// Altaform -> Regresa la peticion del formulario de alta de productos
 func Altaform(ctx iris.Context) {
 	var htmlcode string
 
@@ -185,7 +185,6 @@ func Altaform(ctx iris.Context) {
 		cervezas = inventariomodel.ExtraeCervezas()
 
 		for _, v := range cervezas {
-
 			imagenproducto := inventariomodel.TraerImagenActa(v.Imagen)
 
 			htmlcode += fmt.Sprintf(`
@@ -482,19 +481,20 @@ func check(err error, mensaje string) {
 	}
 }
 
-//GuardarProducto -> recibe el
+// GuardarProducto -> recibe el
 func GuardarProducto(ctx iris.Context) {
 
 	var producto inventariomodel.Producto
 
 	var htmlcode string
 
-	producto.ID = bson.NewObjectId()
+	producto.ID = primitive.NewObjectID()
+
 	producto.Nombre = ctx.PostValue("nombre")
 	producto.PrecioPub, _ = ctx.PostValueFloat64("precio")
 	producto.PrecioUti, _ = ctx.PostValueFloat64("preciouti")
 	producto.Categoria = ctx.PostValue("categoria")
-	producto.Imagen = bson.NewObjectId()
+	producto.Imagen = primitive.NewObjectID()
 
 	// var productosstring []string
 	// var cantidadstring []string
@@ -505,7 +505,8 @@ func GuardarProducto(ctx iris.Context) {
 			istring := strconv.Itoa(i)
 			cantidadint, _ := ctx.PostValueInt("cantidadprod" + istring)
 			prodid := ctx.PostValue("productoid" + istring)
-			producto.Productos = append(producto.Productos, bson.ObjectIdHex(prodid))
+			primt, _ := primitive.ObjectIDFromHex(prodid)
+			producto.Productos = append(producto.Productos, primt)
 			producto.Cantidades = append(producto.Cantidades, cantidadint)
 		}
 	}
@@ -534,7 +535,6 @@ func GuardarProducto(ctx iris.Context) {
 	if inventariomodel.GuardaProducto(producto) {
 
 		idsImg := inventariomodel.UploadImageToMongo(dirPath, nombrearchivo)
-		fmt.Println("id de imagen: ", idsImg)
 		inventariomodel.UpdateImgArt(idsImg, producto.ID)
 
 		htmlcode += fmt.Sprintf(`
@@ -556,7 +556,7 @@ func GuardarProducto(ctx iris.Context) {
 
 }
 
-//EditarAlmacen -> Regresa la informacion del almacen seleccionado para agregar o editar sus productos y/o existencias
+// EditarAlmacen -> Regresa la informacion del almacen seleccionado para agregar o editar sus productos y/o existencias
 func EditarAlmacen(ctx iris.Context) {
 	var htmlcode string
 
@@ -596,10 +596,6 @@ func EditarAlmacen(ctx iris.Context) {
 	for k, v := range almacenEditar.Productos {
 
 		nombredelproducto := inventariomodel.ExtraeNombreProducto(v)
-
-		fmt.Println("k -> ", k)
-
-		fmt.Println("Id ->", v, "   Ex -> ", almacenEditar.Existencia[k])
 
 		if k == 0 {
 			htmlcode += fmt.Sprintf(`
@@ -650,7 +646,7 @@ func EditarAlmacen(ctx iris.Context) {
 
 }
 
-//EditandoProducto -> Edita el producto seleccionado
+// EditandoProducto -> Edita el producto seleccionado
 func EditandoProducto(ctx iris.Context) {
 
 	var htmlcode string
@@ -663,7 +659,8 @@ func EditandoProducto(ctx iris.Context) {
 
 	var producto inventariomodel.Producto
 
-	producto.ID = bson.ObjectIdHex(idprod)
+	primt, _ := primitive.ObjectIDFromHex(idprod)
+	producto.ID = primt
 	producto.Nombre = nombreproducto
 	producto.PrecioPub = preciopub
 	producto.PrecioUti = preciouti
@@ -688,7 +685,7 @@ func EditandoProducto(ctx iris.Context) {
 
 }
 
-//EditarProducto -> Edita el producto seleccionado
+// EditarProducto -> Edita el producto seleccionado
 func EditarProducto(ctx iris.Context) {
 
 	var htmlcode string
@@ -850,7 +847,7 @@ func EditarProducto(ctx iris.Context) {
 
 }
 
-//EliminarProducto -> Elimina el producto siempre y cuando no exista en los almacenes, para eliminarlo debera eliminarlo primero de los almacenes correspondientes
+// EliminarProducto -> Elimina el producto siempre y cuando no exista en los almacenes, para eliminarlo debera eliminarlo primero de los almacenes correspondientes
 func EliminarProducto(ctx iris.Context) {
 
 	//Verificar si el producto tiene existencia en almacen, si tiene no se puede eliminar, pedir al usuario q elimine la existencia antes de eliminar
@@ -880,7 +877,7 @@ func EliminarProducto(ctx iris.Context) {
 
 }
 
-//ActualizarAlmacen -> Recibe la peticion del arreglo para modificar el almacen
+// ActualizarAlmacen -> Recibe la peticion del arreglo para modificar el almacen
 func ActualizarAlmacen(ctx iris.Context) {
 
 	longitud, _ := ctx.PostValueInt("longitud")
@@ -897,10 +894,6 @@ func ActualizarAlmacen(ctx iris.Context) {
 		existencias = append(existencias, ctx.PostValue("existencias"+istring))
 
 	}
-	fmt.Println("numero de productos en almacen -> ", longitud)
-	fmt.Println("ids -> ", ids)
-	fmt.Println("existencias -> ", existencias)
-	fmt.Println("almacen -> ", almaceneditar)
 
 	//Almacenar correctamente los productos y las existencias en el almacen correspondiente
 
@@ -917,7 +910,7 @@ func ActualizarAlmacen(ctx iris.Context) {
 
 }
 
-//ProductosASelect -> Regresa una lista de productos
+// ProductosASelect -> Regresa una lista de productos
 func ProductosASelect(ctx iris.Context) {
 	var htmlcode string
 
