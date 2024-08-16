@@ -1,13 +1,21 @@
-{{template "headerlayout"}} {{template "navingbar" .}}
-<br>
-<br>
-<div class="container-fluid centrado">
-    <canvas id="canvas" width="800" height="800">
+{{template "headerlayout"}}
+<title>MyBarApp &#174;</title>
+</head>
+<body>
+{{template "navingbar" .}}
+<div class="container centrado">
+    <canvas class="reloj" id="canvas" width="1000" height="1000">
         {{template "reloj"}}
     </canvas>
 </div>
-
-<h1>Bienvenido</h1>
+<div class="container centrado">
+    <h1 class="display-1">Bienvenido</h1>
+</div>
+<div class="marquee">
+    <p id="message1"></p>
+    <p id="message2"></p>
+    <p id="message3"></p>
+</div>
 
 {{template "footerlayout"}}
 </body>

@@ -112,6 +112,18 @@ func ExtraeMesa(idmesa string) Mesa {
 
 	return mesa
 }
+func tiempoTranscurrido(inicio, fin time.Time) string {
+	// Calculamos la diferencia entre las dos fechas
+	diferencia := fin.Sub(inicio)
+
+	// Convertimos la diferencia a horas, minutos y segundos
+	horas := int(diferencia.Hours())
+	minutos := int(diferencia.Minutes()) % 60
+	segundos := int(diferencia.Seconds()) % 60
+
+	// Formateamos el resultado en "hh:mm:ss"
+	return fmt.Sprintf("%02d:%02d:%02d", horas, minutos, segundos)
+}
 
 // CierraMesa -> Cambia los status de la mesa sin borrar el registro para la venta diaria y el gran total que se esta buscando
 func CierraMesa(mesaX Mesa) {
@@ -120,9 +132,10 @@ func CierraMesa(mesaX Mesa) {
 
 	client, _ := db.ConectarMongoDB()
 	mesasdiarias := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_MD)
+	mesaX.FechaTermino = time.Now()
 
 	filter := bson.M{"_id": mesaX.ID}
-	update := bson.M{"$set": bson.M{"Estatus": false, "Abierta": false, "Cerrada": true}}
+	update := bson.M{"$set": bson.M{"Estatus": false, "Abierta": false, "Cerrada": true, "FechaTermino": mesaX.FechaTermino, "Ocupacion": tiempoTranscurrido(mesaX.FechaInicio, mesaX.FechaTermino)}}
 	opts2 := options.Update().SetUpsert(false)
 	result, err := mesasdiarias.UpdateOne(context.TODO(), filter, update, opts2)
 	if err != nil {
@@ -143,6 +156,7 @@ func CierraMesa(mesaX Mesa) {
 	nuevamesa.Fecha = mesaX.Fecha
 	nuevamesa.Mesa = mesaX.Mesa
 	nuevamesa.Abierta = true
+	nuevamesa.Mesero = ""
 	nuevamesa.Cerrada = false
 	nuevamesa.Estatus = false
 	nuevamesa.Productos = objectsids
@@ -162,26 +176,46 @@ func CierraMesa(mesaX Mesa) {
 func EliminarColeccionVentasDiarias() {
 	client, _ := db.ConectarMongoDB()
 	ventadiaria := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_MD)
-	if err := ventadiaria.Drop(context.TODO()); err != nil {
-		fmt.Println("Error eliminando la coleccion")
+	// if err := ventadiaria.Drop(context.TODO()); err != nil {
+	// 	fmt.Println("Error eliminando la coleccion")
+	// }
+
+	// Ahora en ves de eliminar toda la coleccion, vamos a introducir una fecha del dia para eliminar las mesas del dia unicamente
+	// posteriormente se tiene que realizar los cambios al formulario correspondiente pero sera muy parecido al de imprimir venta
+	// o venta diaria. esto se hace para prevenir que la funcion de mongosupervisor deje de apuntar a la coleccion mesasdiarias,
+	// ya que al eliminar la coleccion por completo y crearla al iniciar la venta del dia, el puntero ya no inicia el watch de nuevo.
+	// por eso se implementa la consistencia de datos y solo se eliminaran documentos.
+
+	filter := bson.M{}
+	result, err := ventadiaria.DeleteMany(context.TODO(), filter)
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	if result.DeletedCount != 0 {
+		fmt.Printf("Documentos eliminados %v", result.DeletedCount)
+	}
+
 }
 
 // ActualizarMesaDiaria -> Actualiza la mesa diaria
 func ActualizarMesaDiaria(mesa Mesa) {
 	var sumatotal float64
 	for k, v := range mesa.Cantidades {
-
 		precio := PrecioProducto(mesa.Productos[k])
 		sumatotal += (float64(v) * precio)
+	}
+	var creatorsDate time.Time
 
+	if mesa.FechaInicio == creatorsDate {
+		mesa.FechaInicio = time.Now()
 	}
 
 	client, _ := db.ConectarMongoDB()
 	mesasdiarias := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_MD)
 	opts := options.Update().SetUpsert(true)
 	filter := bson.M{"_id": mesa.ID}
-	update := bson.M{"$set": bson.M{"Estatus": true, "GranTotal": sumatotal, "Productos": mesa.Productos, "Cantidades": mesa.Cantidades}}
+	update := bson.M{"$set": bson.M{"Estatus": true, "GranTotal": sumatotal, "Productos": mesa.Productos, "Cantidades": mesa.Cantidades, "Mesero": mesa.Mesero, "FechaInicio": mesa.FechaInicio, "Ocupacion": tiempoTranscurrido(mesa.FechaInicio, time.Now())}}
 	result, err := mesasdiarias.UpdateOne(context.TODO(), filter, update, opts)
 	if err != nil {
 		log.Fatal(err)
@@ -317,7 +351,7 @@ func PrecioProducto(producto primitive.ObjectID) float64 {
 }
 
 // ExtraeFondo -> Extrae la configuracion del fondo de pantalla
-func ExtraeFondo() int {
+func ExtraeFondo() Fondo {
 	var fondo Fondo
 	var err error
 
@@ -331,7 +365,7 @@ func ExtraeFondo() int {
 		}
 	}
 
-	return fondo.Disponibles
+	return fondo
 }
 
 // ActualizaFondo -> Actualiza la configuracion del fondo de pantalla
@@ -357,4 +391,28 @@ func ActualizaFondo(fondint int) {
 	}
 	fmt.Println("Fondo actualizado")
 
+}
+
+// ActualizaMensajes -> Actualiza la configuracion del fondo de pantalla
+func ActualizaMensajes(mensajes []string) {
+	client, _ := db.ConectarMongoDB()
+
+	configuraciones := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_CFG)
+	opts := options.FindOneAndUpdate().SetUpsert(true)
+	filter := bson.M{"Configuracion": "Fondo"}
+	update := bson.M{"$set": bson.M{"Mensajes": mensajes}}
+	var updatedDocument bson.M
+	err := configuraciones.FindOneAndUpdate(
+		context.TODO(),
+		filter,
+		update,
+		opts,
+	).Decode(&updatedDocument)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			log.Println(err)
+			fmt.Println("Mensajes no actualizados")
+		}
+	}
+	fmt.Println("Mensajes actualizados")
 }

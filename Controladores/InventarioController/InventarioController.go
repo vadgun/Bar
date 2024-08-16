@@ -156,16 +156,23 @@ func Altaform(ctx iris.Context) {
 
 		botellas = inventariomodel.ExtraeBotellas()
 
-		for _, v := range botellas {
+		if len(botellas) == 0 {
+			htmlcode += fmt.Sprintf(`<div class="centrado">
+				<h1 class="display-4">No hay botellas dadas de alta</h1>
+			</div>`)
+		} else {
 
-			imagenproducto := inventariomodel.TraerImagenActa(v.Imagen)
+			for _, v := range botellas {
 
-			htmlcode += fmt.Sprintf(`
+				imagenproducto := inventariomodel.TraerImagenActa(v.Imagen)
+
+				htmlcode += fmt.Sprintf(`
 			<div class=" col-sm-3 ">
 				<img src="data:image/jpg;base64,%v" alt="... " class="img-thumbnail " width='50%%'>
 				<h5>%v</h5>
 				<h6>%v pesos</h6>
 			</div>`, imagenproducto, v.Nombre, v.PrecioPub)
+			}
 		}
 
 		htmlcode += fmt.Sprintf(`
@@ -184,15 +191,22 @@ func Altaform(ctx iris.Context) {
 
 		cervezas = inventariomodel.ExtraeCervezas()
 
-		for _, v := range cervezas {
-			imagenproducto := inventariomodel.TraerImagenActa(v.Imagen)
+		if len(cervezas) == 0 {
+			htmlcode += fmt.Sprintf(`<div class="centrado">
+				<h1 class="display-4">No hay cervezas dadas de alta</h1>
+			</div>`)
+		} else {
 
-			htmlcode += fmt.Sprintf(`
+			for _, v := range cervezas {
+				imagenproducto := inventariomodel.TraerImagenActa(v.Imagen)
+
+				htmlcode += fmt.Sprintf(`
 			<div class=" col-sm-3 ">
 				<img src="data:image/jpg;base64,%v" alt="... " class="img-thumbnail " width='50%%'>
 				<h5>%v</h5>
 				<h6>%v pesos</h6>
 			</div>`, imagenproducto, v.Nombre, v.PrecioPub)
+			}
 		}
 
 		htmlcode += fmt.Sprintf(`
@@ -210,19 +224,24 @@ func Altaform(ctx iris.Context) {
 		`)
 
 		botanas = inventariomodel.ExtraeBotanas()
+		if len(botanas) == 0 {
+			htmlcode += fmt.Sprintf(`<div class="centrado">
+				<h1 class="display-4">No hay botanas dadas de alta</h1>
+			</div>`)
+		} else {
 
-		for _, v := range botanas {
+			for _, v := range botanas {
 
-			imagenproducto := inventariomodel.TraerImagenActa(v.Imagen)
+				imagenproducto := inventariomodel.TraerImagenActa(v.Imagen)
 
-			htmlcode += fmt.Sprintf(`
+				htmlcode += fmt.Sprintf(`
 			<div class=" col-sm-3 ">
 				<img src="data:image/jpg;base64,%v" alt="... " class="img-thumbnail " width='50%%'>
 				<h5>%v</h5>
 				<h6>%v pesos</h6>
 			</div>`, imagenproducto, v.Nombre, v.PrecioPub)
+			}
 		}
-
 		htmlcode += fmt.Sprintf(`
 			</div>
 		</div>`)
@@ -239,16 +258,23 @@ func Altaform(ctx iris.Context) {
 
 		cancion = inventariomodel.ExtraeCancion()
 
-		for _, v := range cancion {
+		if len(cancion) == 0 {
+			htmlcode += fmt.Sprintf(`<div class="centrado">
+				<h1 class="display-4">No hay canciones dadas de alta</h1>
+			</div>`)
+		} else {
 
-			imagenproducto := inventariomodel.TraerImagenActa(v.Imagen)
+			for _, v := range cancion {
 
-			htmlcode += fmt.Sprintf(`
+				imagenproducto := inventariomodel.TraerImagenActa(v.Imagen)
+
+				htmlcode += fmt.Sprintf(`
 			<div class=" col-sm-3 ">
 				<img src="data:image/jpg;base64,%v" alt="... " class="img-thumbnail " width='50%%'>
 				<h5>%v</h5>
 				<h6>%v pesos</h6>
 			</div>`, imagenproducto, v.Nombre, v.PrecioPub)
+			}
 		}
 
 		htmlcode += fmt.Sprintf(`
@@ -266,17 +292,23 @@ func Altaform(ctx iris.Context) {
 	`)
 
 		fichas = inventariomodel.ExtraeFichas()
+		if len(fichas) == 0 {
+			htmlcode += fmt.Sprintf(`<div class="centrado">
+				<h1 class="display-4">No hay fichas dadas de alta</h1>
+			</div>`)
+		} else {
 
-		for _, v := range fichas {
+			for _, v := range fichas {
 
-			imagenproducto := inventariomodel.TraerImagenActa(v.Imagen)
+				imagenproducto := inventariomodel.TraerImagenActa(v.Imagen)
 
-			htmlcode += fmt.Sprintf(`
+				htmlcode += fmt.Sprintf(`
 		<div class=" col-sm-3 ">
 			<img src="data:image/jpg;base64,%v" alt="... " class="img-thumbnail " width='50%%'>
 			<h5>%v</h5>
 			<h6>%v pesos</h6>
 		</div>`, imagenproducto, v.Nombre, v.PrecioPub)
+			}
 		}
 
 		htmlcode += fmt.Sprintf(`
@@ -293,17 +325,23 @@ func Altaform(ctx iris.Context) {
 	`)
 
 		promos = inventariomodel.ExtraePromos()
+		if len(promos) == 0 {
+			htmlcode += fmt.Sprintf(`<div class="centrado">
+				<h1 class="display-4">No hay promociones dadas de alta</h1>
+			</div>`)
+		} else {
 
-		for _, v := range promos {
+			for _, v := range promos {
 
-			imagenproducto := inventariomodel.TraerImagenActa(v.Imagen)
+				imagenproducto := inventariomodel.TraerImagenActa(v.Imagen)
 
-			htmlcode += fmt.Sprintf(`
+				htmlcode += fmt.Sprintf(`
 		<div class=" col-sm-3 ">
 			<img src="data:image/jpg;base64,%v" alt="... " class="img-thumbnail " width='50%%'>
 			<h5>%v</h5>
 			<h6>%v pesos</h6>
 		</div>`, imagenproducto, v.Nombre, v.PrecioPub)
+			}
 		}
 
 		htmlcode += fmt.Sprintf(`
@@ -321,17 +359,23 @@ func Altaform(ctx iris.Context) {
 	`)
 
 		copas = inventariomodel.ExtraeCopas()
+		if len(copas) == 0 {
+			htmlcode += fmt.Sprintf(`<div class="centrado">
+				<h1 class="display-4">No hay copas dadas de alta</h1>
+			</div>`)
+		} else {
 
-		for _, v := range copas {
+			for _, v := range copas {
 
-			imagenproducto := inventariomodel.TraerImagenActa(v.Imagen)
+				imagenproducto := inventariomodel.TraerImagenActa(v.Imagen)
 
-			htmlcode += fmt.Sprintf(`
+				htmlcode += fmt.Sprintf(`
 		<div class=" col-sm-3 ">
 			<img src="data:image/jpg;base64,%v" alt="... " class="img-thumbnail " width='50%%'>
 			<h5>%v</h5>
 			<h6>%v pesos</h6>
 		</div>`, imagenproducto, v.Nombre, v.PrecioPub)
+			}
 		}
 
 		htmlcode += fmt.Sprintf(`
@@ -351,16 +395,23 @@ func Altaform(ctx iris.Context) {
 
 		cigarros = inventariomodel.ExtraeCigarros()
 
-		for _, v := range cigarros {
+		if len(cigarros) == 0 {
+			htmlcode += fmt.Sprintf(`<div class="centrado">
+				<h1 class="display-4">No hay cigarros dados de alta</h1>
+			</div>`)
+		} else {
 
-			imagenproducto := inventariomodel.TraerImagenActa(v.Imagen)
+			for _, v := range cigarros {
 
-			htmlcode += fmt.Sprintf(`
+				imagenproducto := inventariomodel.TraerImagenActa(v.Imagen)
+
+				htmlcode += fmt.Sprintf(`
 		<div class=" col-sm-3 ">
 			<img src="data:image/jpg;base64,%v" alt="... " class="img-thumbnail " width='50%%'>
 			<h5>%v</h5>
 			<h6>%v pesos</h6>
 		</div>`, imagenproducto, v.Nombre, v.PrecioPub)
+			}
 		}
 
 		htmlcode += fmt.Sprintf(`

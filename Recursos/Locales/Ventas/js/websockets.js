@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    var socket = new WebSocket("ws://localhost:8080/ws");
+    var socket = new WebSocket("ws://192.168.1.68:8081/ws");
 
     //Al abrir la vista venta.html
     socket.onopen = function() {
@@ -15,6 +15,10 @@ $(document).ready(function() {
         //     console.log(data);
         //     document.getElementById('maincontainer').className = 'newClass';
         VerificaMesas(getCurrentDate());
+        MifuncionModal($("#tablaactiva").val());
+        if ($("#mesaenmodal").val() != undefined) {
+            ProductosYaVendidos($("#mesaenmodal").val());
+          }
     };
 
     //Al cerrar la ventana del navegador venta, o cambiar de pestana

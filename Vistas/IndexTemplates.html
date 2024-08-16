@@ -37,11 +37,50 @@
 
         canvasrelojwidth = $("#canvas").width();
         canvasrelojheight = $("#canvas").height();
+    
+        if (ancho <= 375) {
 
-        if (ancho < 800 || altos < 900) {
+            $("#canvas").width(300);
+            $("#canvas").height(300);
+        }
+
+        if (ancho > 375 && ancho <=414) {
+            $("#canvas").width(400);
+            $("#canvas").height(400);
+        }
+
+        if (ancho > 414 && ancho <=470) {
+            $("#canvas").width(420);
+            $("#canvas").height(420);
+        }
+
+        if (ancho > 470 && ancho <=768) {
+            $("#canvas").width(700);
+            $("#canvas").height(700);
+        }
+
+        if (ancho > 768 && ancho <= 820) {
+            $("#canvas").width(700);
+            $("#canvas").height(700);
+        }
+        
+        if (ancho > 820 && ancho <= 1024) {
+            $("#canvas").width(990);
+            $("#canvas").height(990);
+        }
+
+        if (ancho > 1024 && ancho <= 1440) {
             $("#canvas").width(600);
             $("#canvas").height(600);
+        }
+        if (ancho > 1440 && ancho <= 2560) {
+            $("#canvas").width(700);
+            $("#canvas").height(700);
+        }
 
+        if (ancho > 2560) {
+            $("#canvas").width(800);
+            $("#canvas").height(800);
         }
     }
 

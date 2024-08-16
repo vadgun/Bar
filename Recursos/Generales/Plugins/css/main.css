@@ -315,10 +315,10 @@ iframe {
     -moz-transition: all 0.4s;
     transition: all 0.4s;
     background: #6a7dfe;
-    background: -webkit-linear-gradient(left, #B6E85F, #FCFF69);
-    background: -o-linear-gradient(left, #B6E85F, #FCFF69);
-    background: -moz-linear-gradient(left, #B6E85F, #FCFF69);
-    background: linear-gradient(left, #B6E85F, #FCFF69);
+    background: -webkit-linear-gradient(left, #FFC107, #003366);
+    background: -o-linear-gradient(left, #FFC107, #003366);
+    background: -moz-linear-gradient(left, #FFC107, #003366);
+    background: linear-gradient(left, #FFC107, #003366);
 }
 
 .focus-input100::after {
@@ -381,18 +381,18 @@ iframe {
 
 .btn-show-pass:hover {
     color: #6a7dfe;
-    color: -webkit-linear-gradient(left, #B6E85F, #FCFF69);
-    color: -o-linear-gradient(left, #B6E85F, #FCFF69);
-    color: -moz-linear-gradient(left, #B6E85F, #FCFF69);
-    color: linear-gradient(left, #B6E85F, #FCFF69);
+    color: -webkit-linear-gradient(left, #FFC107, #003366);
+    color: -o-linear-gradient(left, #FFC107, #003366);
+    color: -moz-linear-gradient(left, #FFC107, #003366);
+    color: linear-gradient(left, #FFC107, #003366);
 }
 
 .btn-show-pass.active {
     color: #6a7dfe;
-    color: -webkit-linear-gradient(left, #B6E85F, #FCFF69);
-    color: -o-linear-gradient(left, #B6E85F, #FCFF69);
-    color: -moz-linear-gradient(left, #B6E85F, #FCFF69);
-    color: linear-gradient(left, #B6E85F, #FCFF69);
+    color: -webkit-linear-gradient(left, #FFC107, #003366);
+    color: -o-linear-gradient(left, #FFC107, #003366);
+    color: -moz-linear-gradient(left, #FFC107, #003366);
+    color: linear-gradient(left, #FFC107, #003366);
 }
 
 
@@ -426,22 +426,22 @@ iframe {
     width: 300%;
     height: 100%;
     background: #a64bf4;
-    background: -webkit-linear-gradient(right, #B6E85F, #FCFF69, #B6E85F, #FCFF69);
-    background: -o-linear-gradient(right, #B6E85F, #FCFF69, #B6E85F, #FCFF69);
-    background: -moz-linear-gradient(right, #B6E85F, #FCFF69, #B6E85F, #FCFF69);
-    background: linear-gradient(right, #B6E85F, #FCFF69, #B6E85F, #FCFF69);
+    background: -webkit-linear-gradient(right, #FFC107, #003366, #FFC107, #003366);
+    background: -o-linear-gradient(right, #FFC107, #003366, #FFC107, #003366);
+    background: -moz-linear-gradient(right, #FFC107, #003366, #FFC107, #003366);
+    background: linear-gradient(right, #FFC107, #003366, #FFC107, #003366);
     top: 0;
     left: -100%;
-    -webkit-transition: all 0.4s;
-    -o-transition: all 0.4s;
-    -moz-transition: all 0.4s;
-    transition: all 0.4s;
+    -webkit-transition: all 0.5s;
+    -o-transition: all 0.5s;
+    -moz-transition: all 0.5s;
+    transition: all 0.5s;
 }
 
 .login100-form-btn {
     font-family: Poppins-Medium;
     font-size: 15px;
-    color: #000;
+    color: #b7c3c3;
     line-height: 1.2;
     text-transform: uppercase;
     display: -webkit-box;
@@ -469,7 +469,6 @@ iframe {
         padding: 77px 15px 33px 15px;
     }
 }
-
 
 /*------------------------------------------------------------------
 [ Alert validate ]*/

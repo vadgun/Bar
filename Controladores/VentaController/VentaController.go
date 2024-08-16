@@ -2,6 +2,7 @@ package ventacontroller
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -116,33 +117,38 @@ func VerificarVenta(ctx iris.Context) {
 
 			if v.Estatus == false && v.Abierta == true {
 				htmlcode += fmt.Sprintf(`
-			<div class="col-sm-3" style="text-align: center; padding: 1PX; ">
-				<div style="background-color: #9ea832; height: 200px;">
-					<H2>%v</H2>`, v.Mesa)
+			<div class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-2" style="text-align: center; padding: 1PX; ">
+				<div class="mesasinocupar">
+					<H1 class="bignumber" >%v</H1>`, v.Mesa)
 
 				htmlcode += fmt.Sprintf(`
 					<br>DESOCUPADA<br>					
-					<a class="btn btn-warning btn" href="#" role="button" data-mesa="%v" data-id="%v" data-toggle="modal" data-target="#ModalProductos">Agregar Productos</a>
+					<a class="btn-sm btn-warning" href="#" role="button" data-mesa="%v" data-id="%v" data-toggle="modal" data-target="#ModalProductos">Agregar Productos</a>
 				</div>
 		</div>`, v.Mesa, v.ID.Hex())
 
 			} else if v.Estatus == true && v.Cerrada == false {
 				htmlcode += fmt.Sprintf(`
-						<div class="col-sm-3" style="text-align: center; padding: 1PX; ">
-							<a href="Javascript:alert('OCUPADA');" style="color: black;">
-							<div style="background-color: #31b095; height: 200px;">
-								<H2>%v</H2>`, v.Mesa)
+						<div class="col-6 col-sm-6 col-md-4 col-lg-4 col-xl-2" style="text-align: center; padding: 1PX; ">
+							<a href="Javascript:Ocupada('%v');" style="color: black;">
+							<div class="mesasconclientes">
+								<H2>%v</H2>`, v.Mesero, v.Mesa)
 
 				htmlcode += fmt.Sprintf(`
-								<h1 class="highgreen">%v</h1>
-								<br>
+								<h4 class="highgreen">%v</h4>
+								<h4 class="highgreen">%v</h4>
 								<a class="btn btn-primary btn" href="#" role="button" data-mesa="%v" data-id="%v" data-toggle="modal" data-target="#ModalProductos">Agregar Productos</a>
+								`, ac.FormatMoney(v.GranTotal), v.Mesero, v.Mesa, v.ID.Hex())
 
-								<br>
-								<a class="btn btn-danger btn-sm padd" href="Javascript:CerrarVenta('%v');" role="button">Cerrar Venta</a>
-							</div>
-							</a>
-						</div>`, ac.FormatMoney(v.GranTotal), v.Mesa, v.ID.Hex(), v.ID.Hex())
+				if userOn.Admin {
+					htmlcode += fmt.Sprintf(`<a class="btn btn-danger btn" href="Javascript:CerrarVenta('%v');" role="button">Cerrar Venta</a>
+					</div>
+					</a>
+				</div>`, v.ID.Hex())
+				} else {
+					htmlcode += fmt.Sprintf(`</div></a></div>`)
+				}
+
 			}
 
 		}
@@ -190,19 +196,10 @@ func AbrirVentaDiaria(ctx iris.Context) {
 	}
 
 	htmlcode += fmt.Sprintf(`
-	<div class="container">
-    	<div class="centrado">
-        	<h1 class="display-4">Se han abierto %v Mesas para %v</h1>
-    	</div>
-	</div>
-	<script>
-		alertify
-  .alert("Venta diaria creada", function(){
-    alertify.message('OK');
-  });
-		VerificaMesas('%v')
-	</script>
-	`, MesasDisponibles, fechaVenta, fechaVenta)
+		<script>
+			AlertaCreada("Venta diaria creada");
+		</script>
+	`)
 
 	ctx.HTML(htmlcode)
 
@@ -506,6 +503,7 @@ func ProductoDeModal(ctx iris.Context) {
 		</div>`)
 		} else {
 			htmlcode += fmt.Sprintf(`<table class="table table-hover" style="margin: auto; width: 65%s !important; font-size:14px; text-align: center;">
+			<input type="hidden" id="tablaactiva" value="botana">
 			<thead>
 			  <tr>
 				<th scope="col">#</th>
@@ -540,6 +538,7 @@ func ProductoDeModal(ctx iris.Context) {
 		</div>`)
 		} else {
 			htmlcode += fmt.Sprintf(`<table class="table table-hover" style="margin: auto; width: 65%s !important; font-size:14px; text-align: center;">
+			<input type="hidden" id="tablaactiva" value="botella">
 			<thead>
 			  <tr>
 				<th scope="col">#</th>
@@ -572,6 +571,7 @@ func ProductoDeModal(ctx iris.Context) {
 		</div>`)
 		} else {
 			htmlcode += fmt.Sprintf(`<table class="table table-hover" style="margin: auto; width: 65%s !important; font-size:14px; text-align: center;">
+			<input type="hidden" id="tablaactiva" value="cigarros">
 			<thead>
 			  <tr>
 				<th scope="col">#</th>
@@ -603,6 +603,7 @@ func ProductoDeModal(ctx iris.Context) {
 		</div>`)
 		} else {
 			htmlcode += fmt.Sprintf(`<table class="table table-hover" style="margin: auto; width: 65%s !important; font-size:14px; text-align: center;">
+			<input type="hidden" id="tablaactiva" value="cerveza">
 			<thead>
 			  <tr>
 				<th scope="col">#</th>
@@ -634,6 +635,7 @@ func ProductoDeModal(ctx iris.Context) {
 		</div>`)
 		} else {
 			htmlcode += fmt.Sprintf(`<table class="table table-hover" style="margin: auto; width: 65%s !important; font-size:14px; text-align: center;">
+			<input type="hidden" id="tablaactiva" value="copa">
 			<thead>
 			  <tr>
 				<th scope="col">#</th>
@@ -665,6 +667,7 @@ func ProductoDeModal(ctx iris.Context) {
 		</div>`)
 		} else {
 			htmlcode += fmt.Sprintf(`<table class="table table-hover" style="margin: auto; width: 65%s !important; font-size:14px; text-align: center;">
+			<input type="hidden" id="tablaactiva" value="ficha">
 			<thead>
 			  <tr>
 				<th scope="col">#</th>
@@ -696,6 +699,7 @@ func ProductoDeModal(ctx iris.Context) {
 		</div>`)
 		} else {
 			htmlcode += fmt.Sprintf(`<table class="table table-hover" style="margin: auto; width: 65%s !important; font-size:14px; text-align: center;">
+			<input type="hidden" id="tablaactiva" value="cancion">
 			<thead>
 			  <tr>
 				<th scope="col">#</th>
@@ -745,6 +749,7 @@ func ProductoDeModal(ctx iris.Context) {
 
 			htmlcode += fmt.Sprintf(`
 			<table class="table table-hover" style="margin: auto; width: 65%s !important; font-size:14px; text-align: center;">
+			<input type="hidden" id="tablaactiva" value="promo">
 			<thead>
 				<tr>
 					<th scope="col">#</th>
@@ -867,6 +872,7 @@ func ProductosAgregadosEnModalDesdePromo(ctx iris.Context) {
 
 	htmlcode += fmt.Sprintf(`
 	<table class="table table-hover" style="margin: auto; width: 85%s !important; font-size:14px; text-align: center;">
+	<input type="hidden" id="mesaenmodal" value="%v">
 	<thead>
 	  <tr>
 		<th scope="col">#</th>
@@ -876,7 +882,7 @@ func ProductosAgregadosEnModalDesdePromo(ctx iris.Context) {
 		<th scope="col">Total</th>
 	  </tr>
 	</thead>
-	<tbody>`, "%%")
+	<tbody>`, "%%", mesa.ID.Hex())
 
 	totalsuma := 0.0
 	for k, v := range mesa.Productos {
@@ -931,12 +937,14 @@ func ProductosVendidos(ctx iris.Context) {
 	<div class="container">
     	<div class="centrado">
         	<h1 class="display-4">Agrega productos a la mesa</h1>
+			<input type="hidden" id="mesaenmodal" value="%v">
     	</div>
-	</div>`)
+	</div>`, mesa.ID.Hex())
 
 	} else {
 		htmlcode += fmt.Sprintf(`
 		<table class="table table-hover" style="margin: auto; width: 85%s !important; font-size:14px; text-align: center;">
+		<input type="hidden" id="mesaenmodal" value="%v">
 		<thead>
 		  <tr>
 			<th scope="col">#</th>
@@ -946,7 +954,7 @@ func ProductosVendidos(ctx iris.Context) {
 			<th scope="col">Total</th>
 		  </tr>
 		</thead>
-		<tbody>`, "%%")
+		<tbody>`, "%%", mesa.ID.Hex())
 
 		totalsuma := 0.0
 		for k, v := range mesa.Productos {
@@ -973,11 +981,11 @@ func ProductosVendidos(ctx iris.Context) {
 		</tbody>
 	  </table>`, ac.FormatMoney(totalsuma))
 
-		htmlcode += fmt.Sprintf(`
-	  <div class="container centrado">
-	  <a class="btn btn-warning btn-large padd" href="Javascript:Traspasos('%v');" role="button">Traspasos</a>&nbsp;
-	  <a class="btn btn-danger btn-large padd" href="Javascript:Cancelacion('%v');" role="button">Cancelar Mesa</a>&nbsp;
-	  </div>`, mesa.ID.Hex(), mesa.ID.Hex())
+		// 	htmlcode += fmt.Sprintf(`
+		//   <div class="container centrado">
+		//   <a class="btn btn-warning btn-large padd" href="Javascript:Traspasos('%v');" role="button">Traspasos</a>&nbsp;
+		//   <a class="btn btn-danger btn-large padd" href="Javascript:Cancelacion('%v');" role="button">Cancelar Mesa</a>&nbsp;
+		//   </div>`, mesa.ID.Hex(), mesa.ID.Hex())
 
 	}
 
@@ -988,6 +996,8 @@ func ProductosVendidos(ctx iris.Context) {
 // ProductosAgregadosEnModal -> Evalua la Mesa seleccionada y regresa al modal la cantidad de productos agregados
 func ProductosAgregadosEnModal(ctx iris.Context) {
 
+	userOn := indexmodel.GetUserOn(sessioncontroller.Sess.Start(ctx).GetString("UserID"))
+	log.Println("Usuario agregando producto", userOn.Nombre)
 	idss := ctx.PostValue("data")
 	cadenas := strings.Split(idss, ":")
 	ac := accounting.Accounting{Symbol: "$", Precision: 2}
@@ -999,6 +1009,8 @@ func ProductosAgregadosEnModal(ctx iris.Context) {
 	var htmlcode string
 	encontrado := false
 	contador := 0
+	mesa.Mesero = userOn.Nombre
+
 	for k, v := range mesa.Productos {
 		if v == producto {
 			encontrado = true
@@ -1006,7 +1018,7 @@ func ProductosAgregadosEnModal(ctx iris.Context) {
 		}
 	}
 
-	if encontrado == false {
+	if !encontrado {
 		mesa.Productos = append(mesa.Productos, producto)
 		mesa.Cantidades = append(mesa.Cantidades, cantidad)
 	} else {
@@ -1015,6 +1027,7 @@ func ProductosAgregadosEnModal(ctx iris.Context) {
 
 	htmlcode += fmt.Sprintf(`
 		<table class="table table-hover" style="margin: auto; width: 85%s !important; font-size:14px; text-align: center;">
+		<input type="hidden" id="mesaenmodal" value="%v">
 		<thead>
 		  <tr>
 			<th scope="col">#</th>
@@ -1024,7 +1037,7 @@ func ProductosAgregadosEnModal(ctx iris.Context) {
 			<th scope="col">Total</th>
 		  </tr>
 		</thead>
-		<tbody>`, "%%")
+		<tbody>`, "%%", mesa.ID.Hex())
 
 	totalsuma := 0.0
 	for k, v := range mesa.Productos {
@@ -1052,11 +1065,11 @@ func ProductosAgregadosEnModal(ctx iris.Context) {
 
 	ventamodel.ActualizarMesaDiaria(mesa)
 	ventamodel.ActuailzaAlmacenDesdeModal(producto, cantidad)
-	htmlcode += fmt.Sprintf(`
-	<div class="container centrado">
-	<a class="btn btn-warning btn-large padd" href="Javascript:Traspasos('%v');" role="button">Traspasos</a>&nbsp;
-	<a class="btn btn-danger btn-large padd" href="Javascript:Cancelacion('%v');" role="button">Cancelar Mesa</a>&nbsp;
-	</div>`, mesa.ID.Hex(), mesa.ID.Hex())
+	// htmlcode += fmt.Sprintf(`
+	// <div class="container centrado">
+	// <a class="btn btn-warning btn-large padd" href="Javascript:Traspasos('%v');" role="button">Traspasos</a>&nbsp;
+	// <a class="btn btn-danger btn-large padd" href="Javascript:Cancelacion('%v');" role="button">Cancelar Mesa</a>&nbsp;
+	// </div>`, mesa.ID.Hex(), mesa.ID.Hex())
 
 	ctx.HTML(htmlcode)
 

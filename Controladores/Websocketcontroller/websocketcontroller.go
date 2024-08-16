@@ -115,10 +115,11 @@ func HandleMessages() {
 		for client := range clients {
 			err := client.WriteJSON(msg)
 			if err != nil {
-				log.Println("error:", err)
+				log.Println("error aqui:", err)
 				client.Close()
 				delete(clients, client)
 			}
+			fmt.Println(len(clients))
 		}
 		mutex.Unlock()
 	}
@@ -127,12 +128,11 @@ func HandleMessages() {
 func MongoSupervisor() {
 
 	client, _ := db.ConectarMongoDB()
+	defer client.Disconnect(another.Background())
 	mesasdiarias := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_MD)
 
-	defer client.Disconnect(another.Background())
 	//Implementar una pipeline de mongodb
 	pipeline := mongo.Pipeline{}
-
 	changeStream, err := mesasdiarias.Watch(another.TODO(), pipeline)
 	if err != nil {
 		fmt.Println("No se pudo crear el stream de mongodb", err)
@@ -152,10 +152,11 @@ func MongoSupervisor() {
 		var newmessage Message
 		newmessage.Username = "Jose Roberto"
 		newmessage.Message = "Camacho Christy"
+
 		for client := range clients {
 			err := client.WriteJSON(newmessage)
 			if err != nil {
-				log.Println("error:", err)
+				log.Println("error here:", err)
 				client.Close()
 				delete(clients, client)
 			}

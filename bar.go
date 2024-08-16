@@ -77,11 +77,12 @@ func main() {
 	//Cambiar Fondo de pantalla y Recordarlo
 	app.Post("/ultimofondousado", administracioncontroller.AdministracionFondo)
 	app.Post("/cambiarfondo", administracioncontroller.AdministracionFondoCambiar)
+	app.Post("/configurarmensajes", administracioncontroller.AdministracionMensajesCambiar)
 
 	// WebSocket
 	app.Get("/ws", websocketcontroller.WebsocketHandler)
 	go websocketcontroller.HandleMessages()
 	go websocketcontroller.MongoSupervisor()
 
-	app.Run(iris.Addr(":8080"))
+	app.Run(iris.Addr(":8081"))
 }

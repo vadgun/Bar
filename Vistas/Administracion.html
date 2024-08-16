@@ -1,68 +1,106 @@
-{{template "headerlayout"}} {{template "navingbar" .}}
+{{template "headerlayout"}}
+<title>MyBarApp &#174;</title>
+</head>
 
-<hr>
+<body>
+    {{template "navingbar" .}}
+    <hr>
+    <div class="container">
+        <div class="centrado">
+            <h2>{{.Usuario.Nombre}} {{.Usuario.Apellidos}}
 
-<div class="container">
-    <div class="centrado">
-        <h2>{{.Usuario.Nombre}} {{.Usuario.Apellidos}}
-
-        </h2>
+            </h2>
+        </div>
     </div>
-</div>
 
-<div class="container">
-    <div class="centrado">
-        <h1 class="display-4">Administración</h1>
+    <div class="container">
+        <div class="centrado">
+            <h1 class="display-4">Administración</h1>
+        </div>
     </div>
-</div>
 
-<hr>
+    <hr>
 
-<!-- <div class="container">
+    <div class="container">
+        <form method="POST" action="/configurarmesasdiaras">
+            <div class="col-12">
+                <div class="form-group row">
+                    <label for="mesasdiarias" class="col-sm-2 col-form-label negrita">Mesas disponibles:</label>
+                    <div class="col-sm-2">
+                        <input type="number" class="form-control" id="mesasdiarias" name="mesasdiarias"
+                            value="{{.MesasDisponibles}}" required="">
+                    </div>
 
-    <a class="btn btn-primary btn-large padd" href="Javascript:MyFunc('Administracion');" role="button">Mesas</a>
-
-</div> -->
-
-<div class="container">
-    <form method="POST" action="/configurarmesasdiaras">
-        <div class="col-12">
-            <div class="form-group row">
-                <label for="mesasdiarias" class="col-sm-2 col-form-label negrita">Mesas disponibles:</label>
-                <div class="col-sm-2">
-                    <input type="number" class="form-control" id="mesasdiarias" name="mesasdiarias" value="{{.MesasDisponibles}}" required="">
-                </div>
-
-                <div class="col-sm-2">
-                    <button type="submit" class="btn btn-success">Actualizar Mesas Disponibles</button>
+                    <div class="col-sm-2">
+                        <button type="submit" class="btn btn-success">Actualizar Mesas Disponibles</button>
+                    </div>
                 </div>
             </div>
-        </div>
-    </form>
-</div>
-<br>
-<hr>
-<br>
-<div class="container">
-    <form action="#" id="formventas" method="POST">
-        <div class="col-12">
-            <div class="form-group row">
-                <label for="fechaarchivo" class="col-sm-5 col-form-label negrita highgreen" style="font-size: 2.5em;"> Limpiar Ventas Diarias: </label>
-                <div class="col-sm-6">
-                    <a class="btn btn-danger btn-large padd" href="Javascript:EliminarVenta('GG');" role="button">Eliminar Base de Datos</a>&nbsp;
+        </form>
+    </div>
+    <hr>
+    <br>
+    <div class="container">
+        <form method="POST" action="/configurarmensajes">
+            <div class="col-12">
+                <div class="form-group row">
+                    <label for="mensaje1" class="col-sm-2 col-form-label negrita">Mensaje 1 :</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control" id="mensaje1" name="mensaje1" value="{{.Mensaje1}}"
+                            required="">
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label for="mensaje2" class="col-sm-2 col-form-label negrita">Mensaje 2 :</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control" id="mensaje3" name="mensaje3" value="{{.Mensaje3}}"
+                            required="">
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label for="mensaje3" class="col-sm-2 col-form-label negrita">Mensaje 3 :</label>
+                    <div class="col-sm-6">
+                        <input type="text" class="form-control" id="mensaje2" name="mensaje2" value="{{.Mensaje2}}"
+                            required="">
+                    </div>
+                </div>
+
+                <div class="form-group row centrado">
+                    <div class="col-sm-4">
+                        <button type="submit" class="btn btn-success">Actualizar Mensajes</button>
+                    </div>
                 </div>
             </div>
-        </div>
-    </form>
-</div>
+        </form>
+    </div>
+    <hr>
+    <br>
 
-<div class="container" id="maincontainer">
+    <div class="container">
+        <form action="#" id="formventas" method="POST">
+            <div class="col-12">
+                <div class="form-group row">
+                    <label class="col-sm-5 negrita highgreen"
+                        style="font-size: 2.5em;"> Limpiar Ventas del dia: </label>
+                    <div class="col-sm-6" style="padding: 17px;">
+                        <a class="btn btn-danger btn-large padd" href="Javascript:EliminarVenta('GG');"
+                            role="button">Eliminar Base de Datos del Dia</a>&nbsp;
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
 
-</div>
+    <div class="container" id="maincontainer">
 
-<script>
-    administracionit.classList.add("page_selected");
-</script>
-{{template "footerlayout"}}
+    </div>
+
+    <script>
+        administracionit.classList.add("page_selected");
+    </script>
+    {{template "footerlayout"}}
 </body>
+
 </html>

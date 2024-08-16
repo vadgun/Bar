@@ -13,15 +13,24 @@ $(document).ready(function() {
         type: 'POST',
         dataType: 'html',
         success: function(result) {
-            console.log("Operacion Realizada con Exito");
-            document.body.style.backgroundImage = 'url("Recursos/Imagenes/Fondos/' + result + '.jpg")';
-            data2 = parseInt(result) + 1;
+            console.log("Operacion Realizada con Exito FONDO");
+            var parseado = JSON.parse(result);
+            document.body.style.backgroundImage = 'url("Recursos/Imagenes/Fondos/' + parseado.Disponibles + '.jpg")';
+            data2 = parseInt(parseado.Disponibles) + 1;
             document.getElementById('cambiafondos').href = 'Javascript:CambiarFondo(' + data2 + ')';
 
             if (parseInt(result) == 33) {
                 document.body.style.backgroundImage = 'url("Recursos/Imagenes/Fondos/' + 1 + '.jpg")';
                 document.getElementById('cambiafondos').href = "Javascript:CambiarFondo(1)";
             }
+
+            existes = document.getElementById('message1');
+
+            if (existes != undefined){
+                document.getElementById('message1').innerHTML = parseado.Mensajes[0];
+                document.getElementById('message2').innerHTML = parseado.Mensajes[1];
+                document.getElementById('message3').innerHTML = parseado.Mensajes[2];
+            }    
         },
         error: function(xhr, status) {
             console.log("Error en la consulta")
@@ -405,21 +414,19 @@ function CerrarVenta(data) {
         }
     }
 
-    var r = confirm("Desea cerrar la mesa "+numesa+" ?");
     fecha = $("#fechaarchivo").val();
-
     data += ":" + fecha
 
-    if (r == true) {
-        console.log(data);
-        $.ajax({
+    alertify.confirm("Desea cerrar la mesa "+numesa+" ?",
+    function(){
+        alertify.success('Ok');
+                $.ajax({
             url: '/cerrarventademesa',
             data: { data: data },
             type: 'POST',
             dataType: 'html',
             success: function(result) {
                 console.log("Operacion Realizada con Exito");
-                //$("#maincontainer").html(result);
                 console.log(result);
             },
             error: function(xhr, status) {
@@ -429,11 +436,10 @@ function CerrarVenta(data) {
                 console.log("Proceso Terminado2")
             }
         });
-        //VerificaMesas(fecha);
-
-    } else {
-        return false;
-    }
+    },
+    function(){
+        alertify.error('Cancel');
+    });
 
 }
 
@@ -463,11 +469,29 @@ $('#ModalProductos').on('show.bs.modal', function(e) {
     });
 });
 
+function ProductosYaVendidos(data){
+    $.ajax({
+        url: '/productosVendidos',
+        data: { data: data },
+        type: 'POST',
+        dataType: 'html',
+        success: function(result) {
+            console.log("Operacion Realizada con Exito");
+            $("#serviciosmodal").html(result);
+        },
+        error: function(xhr, status) {
+            console.log("Error en la consulta")
+        },
+        complete: function(xhr, status) {
+            console.log("Datos de Mesa obtenidos")
+
+        }
+    });
+}
+
 $('#ModalProductos').on('hidden.bs.modal', function(e) {
     $("#modalcontainerforprod").html("");
     $("#serviciosmodal").html("");
-    fecha = $("#fechaarchivo").val();
-    //VerificaMesas(fecha);
 });
 
 function AgregarAMesa(data) {

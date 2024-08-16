@@ -485,7 +485,7 @@ func ExtraeNombreProducto(id primitive.ObjectID) string {
 // GuardaProductoEditado -> Edita el producto seleccionado
 func GuardaProductoEditado(producto Producto) {
 
-	var productoold Producto
+	var productoold *Producto
 	var err error
 
 	client, _ := db.ConectarMongoDB()
@@ -498,9 +498,8 @@ func GuardaProductoEditado(producto Producto) {
 		}
 	}
 
-	producto.Imagen = productoold.Imagen
-
-	result, err := productoscol.UpdateOne(context.TODO(), filter, producto)
+	update := bson.M{"$set": bson.M{"Nombre": producto.Nombre, "PrecioPub": producto.PrecioPub, "PrecioUti": producto.PrecioUti, "Categoria": producto.Categoria, "Imagen": productoold.Imagen}}
+	result, err := productoscol.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			fmt.Println(err, "Id de Producto no encontrado")
