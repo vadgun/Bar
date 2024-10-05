@@ -1,14 +1,17 @@
 package ventacontroller
 
 import (
+	"bufio"
 	"fmt"
 	"log"
+	"net"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/jung-kurt/gofpdf"
 	"github.com/kataras/iris/v12"
+	"github.com/kenshaw/escpos"
 	"github.com/leekchan/accounting"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
@@ -993,6 +996,62 @@ func ProductosVendidos(ctx iris.Context) {
 
 }
 
+func printcomanda(nummesa, cantidad, secuencia int, mesero, nombreprod string) {
+	// Conéctate a la impresora usando la IP y el puerto (generalmente 9100)
+	conn, err := net.Dial("tcp", "192.168.1.76:9100")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer conn.Close()
+	cero := ""
+	if nummesa < 10 {
+		cero = "0"
+	}
+	numstring := strconv.Itoa(nummesa)
+	cantstring := strconv.Itoa(cantidad)
+	secstring := strconv.Itoa(secuencia)
+	fechita := FechaHTML(time.Now())
+	horamin := time.Now().Format("03:04 pm")
+	nombreprod2 := strings.Replace(nombreprod, " ", "\n", -1)
+
+	rw := bufio.NewReadWriter(bufio.NewReader(conn), bufio.NewWriter(conn))
+	p := escpos.New(rw)
+	p.Init()
+	p.SetSmooth(1)
+	p.SetFontSize(4, 4)
+	p.SetFont("B")
+	p.SetAlign("center")
+	p.Write("PEDIDO")
+	p.FormfeedN(10)
+	p.SetFontSize(3, 3)
+	p.Write("N: " + secstring)
+	p.FormfeedN(3)
+	p.SetFontSize(2, 2)
+	p.Write("MESA:     " + cero + numstring)
+	p.FormfeedN(3)
+	p.Write("MESERO: " + mesero)
+	p.FormfeedN(10)
+	p.Write(horamin + "        " + fechita)
+	p.FormfeedN(3)
+	p.Write("Cant           Producto")
+	p.SetFontSize(2, 2)
+	p.FormfeedN(2)
+	p.SetAlign("center")
+	p.Write("____________________________") //21 caracteres 2,2 A
+	p.FormfeedN(3)
+	p.SetAlign("center")
+	p.SetFontSize(4, 4)
+	p.Write(cantstring + " " + nombreprod2)
+	p.Linefeed()
+	p.Linefeed()
+	p.FormfeedN(5)
+
+	p.Cut()
+	p.End()
+
+	rw.Flush()
+}
+
 // ProductosAgregadosEnModal -> Evalua la Mesa seleccionada y regresa al modal la cantidad de productos agregados
 func ProductosAgregadosEnModal(ctx iris.Context) {
 
@@ -1065,6 +1124,11 @@ func ProductosAgregadosEnModal(ctx iris.Context) {
 
 	ventamodel.ActualizarMesaDiaria(mesa)
 	ventamodel.ActuailzaAlmacenDesdeModal(producto, cantidad)
+
+	if cadenas[3] == "botana" {
+		secuencia := ventamodel.GetNextOrderID()
+		printcomanda(mesa.Mesa, cantidad, secuencia, mesa.Mesero, inventariomodel.ExtraeProducto(producto.Hex()).Nombre)
+	}
 	// htmlcode += fmt.Sprintf(`
 	// <div class="container centrado">
 	// <a class="btn btn-warning btn-large padd" href="Javascript:Traspasos('%v');" role="button">Traspasos</a>&nbsp;

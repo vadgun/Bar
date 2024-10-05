@@ -294,6 +294,23 @@ func ActuailzaAlmacenDesdeModalPromo(producto primitive.ObjectID, cantidad int) 
 		fmt.Println("Almacen Modal actualizado: ", almacen.Nombre)
 	}
 }
+func GetNextOrderID() int {
+	filter := bson.M{"_id": "orderid"}
+	update := bson.M{"$inc": bson.M{"sequence_value": 1}}
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After).SetUpsert(true)
+	var result struct {
+		SequenceValue int `bson:"sequence_value"`
+	}
+	client, _ := db.ConectarMongoDB()
+	collection := client.Database(conexiones.MONGO_DB).Collection(conexiones.MONGO_DB_c)
+	err := collection.FindOneAndUpdate(context.TODO(), filter, update, opts).Decode(&result)
+	if err != nil {
+		return 0
+	}
+
+	return result.SequenceValue
+
+}
 
 // ActuailzaAlmacenDesdeModal -> Actualiza la cantidad de existencia en el Almacen Refrigerador
 func ActuailzaAlmacenDesdeModal(producto primitive.ObjectID, cantidad int) {

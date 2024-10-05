@@ -11,4 +11,5 @@ const (
 	MONGO_DB_M   = "Mesas"
 	MONGO_DB_AL  = "Almacenes"
 	MONGO_DB_MD  = "MesasDiarias"
+	MONGO_DB_c   = "counters"
 )

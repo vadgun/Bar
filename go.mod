@@ -76,4 +76,5 @@ require (
 	github.com/kataras/iris/v12 v12.2.8
 	github.com/leekchan/accounting v1.0.0
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
+	github.com/kenshaw/escpos v0.0.0-20221114190919-df06b682a8fc
 )
