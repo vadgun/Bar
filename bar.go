@@ -84,5 +84,5 @@ func main() {
 	go websocketcontroller.HandleMessages()
 	go websocketcontroller.MongoSupervisor()
 
-	app.Run(iris.Addr(":8081"))
+	app.Run(iris.Addr(":8080"))
 }

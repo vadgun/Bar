@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    var socket = new WebSocket("ws://192.168.1.64:8081/ws");
+    var socket = new WebSocket("ws://192.168.1.67:8080/ws");
 
     //Al abrir la vista venta.html
     socket.onopen = function() {
